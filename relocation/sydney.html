@@ -1,0 +1,336 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Sydney Rental Tracker",
+  "schemaVersion": 1,
+  "description": "Sydney pet-friendly rental tracker — 6 zones, domain.com.au, $1,250–$1,750/wk, 3BR+, cat+dog. Scan #3, June 26 2026. 194 total, 21 new this week, 4 price drops."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sydney Rental Tracker</title>
+<style>
+  :root { color-scheme: light;
+    --blue:#0369a1; --navy:#0c4a6e; --sand:#f0f7ff; --green:#1a7a3f; --green-bg:#e6f4ec;
+    --red:#b91c1c; --red-bg:#fee2e2; --yellow:#856404; --yellow-bg:#fff8e1;
+    --orange:#c05621; --orange-bg:#fff7ed; --grey:#6b7280; --grey-bg:#f3f4f6; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand);
+    color:#1f2937; margin:0; padding:0 0 40px; line-height:1.5; }
+  header { background:linear-gradient(135deg,var(--navy),var(--blue)); color:#fff; padding:22px 28px; }
+  header h1 { margin:0 0 4px; font-size:1.35rem; }
+  header .meta { font-size:0.85rem; opacity:0.9; }
+  .wrap { padding:0 24px; max-width:1100px; margin:0 auto; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; align-items:center; }
+  .controls button { border:1px solid #bcd; background:#fff; color:var(--navy); border-radius:16px;
+    padding:6px 14px; font-size:0.82rem; cursor:pointer; font-weight:600; transition:all 0.15s; }
+  .controls button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .controls button:hover:not(.active) { background:#e8f4fb; }
+  .alert { background:#fee2e2; border:2px solid #ef4444; border-radius:8px; padding:14px 18px; margin:16px 0; }
+  .alert strong { color:var(--red); }
+  .price-drop-box { background:#ecfdf5; border:2px solid #10b981; border-radius:8px; padding:14px 18px; margin:16px 0; }
+  .price-drop-box strong { color:#065f46; }
+  .summary { background:#fff; border-left:6px solid var(--red); border-radius:6px; padding:14px 18px; margin:16px 0;
+    box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+  .summary h2 { margin:0 0 6px; color:var(--red); font-size:1.05rem; }
+  .stats { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+  .stat { background:#fff; border:1px solid #dde6ef; border-radius:8px; padding:10px 16px; text-align:center; min-width:100px; }
+  .stat .num { font-size:1.5rem; font-weight:800; color:var(--blue); }
+  .stat .lbl { font-size:0.72rem; color:var(--grey); margin-top:1px; }
+  .outreach-box { background:#fff; border:1px solid #dde6ef; border-radius:6px; padding:12px 16px; margin:16px 0; font-size:0.85rem; }
+  .outreach-box h3 { margin:0 0 8px; color:var(--navy); font-size:0.95rem; }
+  .status-row { display:flex; align-items:center; gap:8px; margin:5px 0; font-size:0.83rem; }
+  .sdot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .sdot.none { background:#d1d5db; }
+  .zone { margin:24px 0; }
+  .zone h2 { color:#fff; background:var(--navy); padding:9px 16px; border-radius:6px 6px 0 0; margin:0; font-size:1rem; }
+  .zone .sub { font-size:0.78rem; opacity:0.82; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #dde6ef; padding:9px 10px; text-align:left; font-size:0.83rem; vertical-align:top; }
+  th { background:#eef3f8; color:var(--navy); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#f8fbfe; }
+  tr.deposit td { opacity:0.45; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:12px; font-size:0.71rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); }
+  .pr { background:var(--red-bg); color:var(--red); }
+  .py { background:var(--yellow-bg); color:var(--yellow); }
+  .po { background:var(--orange-bg); color:var(--orange); }
+  .pgr { background:var(--grey-bg); color:var(--grey); }
+  .badge { display:inline-block; background:var(--red); color:#fff; font-size:0.62rem; font-weight:700;
+    padding:1px 6px; border-radius:4px; margin-right:4px; vertical-align:middle; }
+  .star { display:inline-block; background:#f59e0b; color:#fff; font-size:0.62rem; font-weight:700;
+    padding:1px 6px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  .drop { display:inline-block; background:#10b981; color:#fff; font-size:0.62rem; font-weight:700;
+    padding:1px 6px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  a { color:var(--blue); text-decoration:none; } a:hover { text-decoration:underline; }
+  .hidden { display:none !important; }
+  .note { font-size:0.8rem; color:#777; margin-top:16px; background:#fffbeb; border-left:3px solid #f59e0b;
+    padding:10px 14px; border-radius:0 6px 6px 0; }
+  .top-picks { background:#fffbeb; border:2px solid #f59e0b; border-radius:8px; padding:16px 20px; margin:16px 0; }
+  .top-picks h3 { margin:0 0 12px; color:#92400e; font-size:1rem; }
+  .picks-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; }
+  .pick { background:#fff; border:1px solid #fde68a; border-radius:6px; padding:10px 12px; }
+  .pick .addr { font-weight:700; font-size:0.85rem; color:#1f2937; }
+  .pick .addr a { color:var(--blue); }
+  .pick .zone-tag { font-size:0.75rem; color:var(--grey); margin:2px 0; }
+  .pick .price { font-size:1rem; font-weight:800; color:var(--green); }
+  .pick .why { font-size:0.75rem; color:#374151; margin-top:5px; font-style:italic; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 Sydney Rental Tracker</h1>
+  <div class="meta">6 zones · domain.com.au · Pets (cat + dog) · $1,250–$1,750/wk · 3BR+ · Move-in Dec 2026 · Last scan: <strong>June 26, 2026 (Scan #3)</strong></div>
+</header>
+<div class="wrap">
+
+  <!-- ALERT -->
+  <div class="alert">
+    <strong>⚠️ 2 Top Picks Gone (Scan #3, 26 Jun):</strong> <strong>3 Woodside Grove, Forestville</strong> ($1,250/wk, 7,218m²) and <strong>46 Cumberland Ave, Collaroy</strong> ($1,395/wk) are no longer appearing — likely leased. Act quickly on current top picks.
+  </div>
+
+  <!-- PRICE DROPS -->
+  <div class="price-drop-box">
+    <strong>💚 4 Price Drops This Week:</strong> 84 Cottenham Ave Kensington $1,350→<strong>$1,250</strong> · 14 Roscoe St Bondi Beach $1,500→<strong>$1,350</strong> · 134 Reservoir St Surry Hills $1,500→<strong>$1,400</strong> · Surry Hills terrace $1,494→<strong>$1,420</strong>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="num">194</div><div class="lbl">Total listings</div></div>
+    <div class="stat"><div class="num">~175</div><div class="lbl">Available</div></div>
+    <div class="stat"><div class="num">~19</div><div class="lbl">Deposit taken</div></div>
+    <div class="stat"><div class="num">6</div><div class="lbl">Zones</div></div>
+    <div class="stat"><div class="num">0</div><div class="lbl">Contacted</div></div>
+    <div class="stat"><div class="num">21</div><div class="lbl">New this week</div></div>
+  </div>
+
+  <!-- NEW THIS WEEK -->
+  <div class="summary">
+    <h2>🆕 21 New Listings — June 26, 2026</h2>
+    <div>Key new entries: <strong>52 Rainford St Surry Hills</strong> ($1,350, terrace, insp today 1:30pm) · <strong>5 Tunks St Waverton</strong> ($1,500, 234m², insp today 11am) · <strong>206 Crown St Darlinghurst</strong> ($1,400, 3B/2ba terrace) · <strong>3 Gertrude St Beacon Hill</strong> ($1,250, 3B/2ba) · <strong>11 Sydney Rd Warriewood</strong> ($1,250) · 8 more Northern Beaches entries · 4 price drops. Full report: sydney_rentals_06262026.html</div>
+  </div>
+
+  <!-- OUTREACH STATUS -->
+  <div class="outreach-box">
+    <h3>📧 Outreach Status</h3>
+    <div class="status-row"><span class="sdot none"></span><strong>NOT STARTED</strong> — No Sydney properties contacted yet. Top priority: 52 Rainford St Surry Hills (inspection today 1:30pm) and 5 Tunks St Waverton (inspection today 11am).</div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="controls" id="filters">
+    <strong style="font-size:0.82rem;color:var(--navy)">Filter:</strong>
+    <button data-f="all" class="active">All</button>
+    <button data-f="new">🆕 New this week (21)</button>
+    <button data-f="avail">Available only</button>
+    <button data-f="pick">⭐ Top picks</button>
+    <button data-f="drop">💚 Price drops (4)</button>
+    <button data-f="2ba">2+ bathrooms</button>
+  </div>
+
+  <!-- TOP PICKS -->
+  <div class="top-picks">
+    <h3>⭐ Top Picks — June 26, 2026</h3>
+    <div class="picks-grid">
+      <div class="pick" data-pick="1">
+        <div class="addr"><a href="https://www.domain.com.au/52-rainford-street-surry-hills-nsw-2010-18184460" target="_blank">52 Rainford Street, Surry Hills</a> <span class="badge">NEW</span></div>
+        <div class="zone-tag">Zone 4 — Paddington/Surry Hills</div>
+        <div class="price">$1,350/wk</div>
+        <div class="why">New Domain listing. 3B/1ba terrace. Inspection TODAY 1:30pm. Act immediately.</div>
+      </div>
+      <div class="pick" data-pick="1">
+        <div class="addr"><a href="https://www.domain.com.au/5-tunks-street-waverton-nsw-2060-18185584" target="_blank">5 Tunks Street, Waverton</a> <span class="badge">NEW</span></div>
+        <div class="zone-tag">Zone 6 — North Sydney</div>
+        <div class="price">$1,500/wk</div>
+        <div class="why">234m² house, 3B/2ba. Waverton — prettiest North Sydney suburb. Inspection TODAY 11am.</div>
+      </div>
+      <div class="pick" data-pick="1">
+        <div class="addr"><a href="https://www.domain.com.au/14-roscoe-street-bondi-beach-nsw-2026-18173722" target="_blank">14 Roscoe Street, Bondi Beach</a> <span class="drop">↓$150</span></div>
+        <div class="zone-tag">Zone 1 — Eastern Beaches</div>
+        <div class="price">$1,350/wk</div>
+        <div class="why">Was $1,500. 3B/2ba house. Bondi Beach address. Motivated landlord after 6 days.</div>
+      </div>
+      <div class="pick" data-pick="1">
+        <div class="addr"><a href="https://www.domain.com.au/84-cottenham-avenue-kensington-nsw-2033-18163929" target="_blank">84 Cottenham Avenue, Kensington</a> <span class="drop">↓$100</span></div>
+        <div class="zone-tag">Zone 1 — Eastern Beaches</div>
+        <div class="price">$1,250/wk</div>
+        <div class="why">Now budget floor after $100/wk drop. 3B/1ba semi. Near UNSW &amp; Randwick.</div>
+      </div>
+      <div class="pick" data-pick="1">
+        <div class="addr"><a href="https://www.domain.com.au/2-37-pine-avenue-narraweena-nsw-2099-18171488" target="_blank">2/37 Pine Avenue, Narraweena</a></div>
+        <div class="zone-tag">Zone 2 — Northern Beaches</div>
+        <div class="price">$1,250/wk</div>
+        <div class="why">531m², 3B/2ba, still available after 6 days. Narraweena → Dee Why beach. Good sign on landlord.</div>
+      </div>
+      <div class="pick" data-pick="1">
+        <div class="addr"><a href="https://www.domain.com.au/72-brocks-lane-newtown-nsw-2042-14840135" target="_blank">72 Brocks Lane, Newtown</a></div>
+        <div class="zone-tag">Zone 5 — Inner West</div>
+        <div class="price">$1,295/wk</div>
+        <div class="why">Pets OK. Featured top Inner West result. King Street walking distance. 3B/1ba house.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZONE 1: EASTERN BEACHES -->
+  <div class="zone" data-zone="1">
+    <h2>Zone 1 — Eastern Beaches <span class="sub">Bondi · Bronte · Maroubra · Randwick · Paddington · Surry Hills · Darlinghurst · Kensington · Alexandria · Redfern</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/28-mons-avenue-maroubra-nsw-2035-18182439">28 Mons Avenue</a><br><small>Maroubra</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,295</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-drop="1" data-pick="1"><td><span class="star">⭐</span><span class="drop">↓$100</span></td><td><a href="https://www.domain.com.au/84-cottenham-avenue-kensington-nsw-2033-18163929">84 Cottenham Avenue</a><br><small>Kensington</small></td><td>Semi</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · Price drop from $1,350 · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/7-cascade-street-paddington-nsw-2021-18177422">7 Cascade Street</a><br><small>Paddington</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,325</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/52-rainford-street-surry-hills-nsw-2010-18184460">52 Rainford Street ⭐</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · Insp TODAY 1:30pm · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-drop="1" data-pick="1"><td><span class="star">⭐</span><span class="drop">↓$150</span></td><td><a href="https://www.domain.com.au/14-roscoe-street-bondi-beach-nsw-2026-18173722">14 Roscoe Street</a><br><small>Bondi Beach</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · Was $1,500 · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/206-crown-street-darlinghurst-nsw-2010-18183044">206 Crown Street</a><br><small>Darlinghurst</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp TODAY 1:30pm · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/107-greens-road-paddington-nsw-2021-15902443">107 Greens Road</a><br><small>Paddington</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp TODAY 9:35am · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/35-hollywood-avenue-bondi-junction-nsw-2022-18179179">35 Hollywood Avenue</a><br><small>Bondi Junction</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-drop="1"><td><span class="drop">↓$100</span></td><td><a href="https://www.domain.com.au/134-reservoir-street-surry-hills-nsw-2010-15972972">134 Reservoir Street</a><br><small>Surry Hills</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Was $1,500 · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/89-arthur-street-surry-hills-nsw-2010-15897526">89 Arthur Street</a><br><small>Surry Hills</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,450</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/33-queen-street-randwick-nsw-2031-18177661">33 Queen Street</a><br><small>Randwick</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/76-suttor-street-alexandria-nsw-2015-16839177">76 Suttor Street</a><br><small>Alexandria</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,575</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/1122-anzac-pde-maroubra-nsw-2035-18171878">1122 Anzac Parade</a><br><small>Maroubra</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,600</strong></td><td><span class="pill pg">Available</span></td><td>645m² · 6 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/28-caledonia-street-paddington-nsw-2021-18182623">28 Caledonia Street</a><br><small>Paddington</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,650</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/116-wallis-street-woollahra-nsw-2025-18170177">116 Wallis Street</a><br><small>Woollahra</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,650</strong></td><td><span class="pill pg">Available</span></td><td>Insp TODAY 1:30pm · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/21-dudley-street-bondi-nsw-2026-15307872">21 Dudley Street</a><br><small>Bondi</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,750</strong></td><td><span class="pill pg">Available</span></td><td>Budget max · <span class="pill py">Confirm yard</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">82 total listings in Eastern Suburbs with pets filter. Only top results shown. <a href="https://www.domain.com.au/rent/eastern-suburbs-nsw/house/3-bedrooms/?price=1250-1750&petsAllowed=1" target="_blank">See all →</a></p>
+  </div>
+
+  <!-- ZONE 2: NORTHERN BEACHES -->
+  <div class="zone" data-zone="2">
+    <h2>Zone 2 — Northern Beaches <span class="sub">Manly · Dee Why · Narrabeen · Collaroy · Newport · Beacon Hill · Seaforth · Killarney Heights · Warriewood · Frenchs Forest · Belrose · Fairlight</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/11-sydney-road-warriewood-nsw-2102-18186147">11 Sydney Road</a><br><small>Warriewood</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Budget floor · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/3-gertrude-street-beacon-hill-nsw-2100-18180100">3 Gertrude Street</a><br><small>Beacon Hill</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>2ba at floor price · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/56a-claudare-street-collaroy-plateau-nsw-2097-18178237">56a Claudare Street</a><br><small>Collaroy Plateau</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>2ba at floor · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-pick="1"><td><span class="star">⭐</span></td><td><a href="https://www.domain.com.au/2-37-pine-avenue-narraweena-nsw-2099-18171488">2/37 Pine Avenue</a><br><small>Narraweena</small></td><td>Semi</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · 531m² · Still avail after 6 days · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/12-lockhart-place-belrose-nsw-2085-18135808">12 Lockhart Place</a><br><small>Belrose</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,295</strong></td><td><span class="pill pg">Available</span></td><td>708m² · 3 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/37-wallumatta-road-newport-nsw-2106-18176247">37 Wallumatta Road</a><br><small>Newport</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,300</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/70-frenchs-forest-road-seaforth-nsw-2092-18160591">70 Frenchs Forest Road</a><br><small>Seaforth</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/57-oceana-street-narraweena-nsw-2099-18184016">57 Oceana Street</a><br><small>Narraweena</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/1-goroka-place-beacon-hill-nsw-2100-18133559">1 Goroka Place</a><br><small>Beacon Hill</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>3 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/2-inverness-avenue-frenchs-forest-nsw-2086-18185035">2 Inverness Avenue</a><br><small>Frenchs Forest</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,495</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/4-cavan-road-killarney-heights-nsw-2087-18131651">4 Cavan Road</a><br><small>Killarney Heights</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/27-tralee-avenue-killarney-heights-nsw-2087-18187296">27 Tralee Avenue</a><br><small>Killarney Heights</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/2-henry-street-dee-why-nsw-2099-17528095">2 Henry Street</a><br><small>Dee Why</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>Beach area · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/250-sydney-road-fairlight-nsw-2094-18108904">250 Sydney Road</a><br><small>Fairlight</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,550</strong></td><td><span class="pill pg">Available</span></td><td>Near Manly · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/121-lagoon-street-north-narrabeen-nsw-2101-18136552">121 Lagoon Street</a><br><small>North Narrabeen</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,600</strong></td><td><span class="pill pg">Available</span></td><td>390m² · Lagoon · <span class="pill py">Confirm yard</span></td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/27-fairy-bower-road-manly-nsw-2095-18140206">27 Fairy Bower Road</a><br><small>Manly</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>Was top pick Jun 20</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/771-barrenjoey-road-avalon-beach-nsw-2107-18167452">771 Barrenjoey Road</a><br><small>Avalon Beach</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,600</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>Went DT this week</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/1-58-avalon-parade-avalon-beach-nsw-2107-18157090">1/58 Avalon Parade</a><br><small>Avalon Beach</small></td><td>Semi</td><td>3B/1ba</td><td><strong>$1,495</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ZONE 3: CENTRAL COAST -->
+  <div class="zone" data-zone="3">
+    <h2>Zone 3 — Central Coast <span class="sub">Terrigal · Avoca Beach · Copacabana · Macmasters Beach · North Avoca · Wamberal · Narara · Saratoga · Forresters Beach · Wyoming</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/64-beachview-esplanade-macmasters-beach-nsw-2251-18177407">64 Beachview Esplanade</a><br><small>Macmasters Beach</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,000</strong></td><td><span class="pill pg">Available</span></td><td>Best value · Beach location · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/16-salisbury-drive-terrigal-nsw-2260-18181312">16 Salisbury Drive</a><br><small>Terrigal</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,000</strong></td><td><span class="pill pg">Available</span></td><td>Terrigal village · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/44-benwerrin-road-wamberal-nsw-2260-18155555">44 Benwerrin Road</a><br><small>Wamberal</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,000</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/92-oceano-st-copacabana-nsw-2251-18186192">92 Oceano Street</a><br><small>Copacabana</small></td><td>House</td><td>6B/2ba</td><td><strong>$1,075</strong></td><td><span class="pill pg">Available</span></td><td">6 bedrooms — office + spare rooms · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/15-beachcomber-parade-north-avoca-nsw-2260-18166928">15 Beachcomber Parade</a><br><small>North Avoca</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,050</strong></td><td><span class="pill pg">Available</span></td><td>506m² · Avoca Beach · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/19-malumba-avenue-saratoga-nsw-2251-18122697">19 Malumba Avenue</a><br><small>Saratoga</small></td><td>House</td><td>4B/3ba</td><td><strong>$1,100</strong></td><td><span class="pill pg">Available</span></td><td>499m² · 4B/3ba exceptional value · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/103-cape-three-points-rd-avoca-beach-nsw-2251-18180349">103 Cape Three Points Rd</a><br><small>Avoca Beach</small></td><td>House</td><td>5B/3ba</td><td><strong>$1,150</strong></td><td><span class="pill pg">Available</span></td><td">5B/3ba — office + rooms · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/14-tiarri-crescent-terrigal-nsw-2260-16538057">14 Tiarri Crescent</a><br><small>Terrigal</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,200</strong></td><td><span class="pill pg">Available</span></td><td>Terrigal beach village · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/7-blackwood-close-narara-nsw-2250-18170886">7 Blackwood Close</a><br><small>Narara</small></td><td>House</td><td>5B/3ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td">5B/3ba extreme value · <span class="pill py">Confirm yard</span></td></tr>
+      </tbody>
+    </table>
+    <p class="note">18 total listings in Terrigal/CC with pets filter. <a href="https://www.domain.com.au/rent/terrigal-nsw-2260/house/?price=1000-1750&petsAllowed=1" target="_blank">See all →</a></p>
+  </div>
+
+  <!-- ZONE 4: PADDINGTON / SURRY HILLS -->
+  <div class="zone" data-zone="4">
+    <h2>Zone 4 — Paddington / Surry Hills Terraces <span class="sub">Paddington · Surry Hills · Darlinghurst · Woollahra · Centennial Park · Redfern (no pets filter on terrace type — confirm in enquiry)</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-new="1" data-pick="1"><td><span class="badge">NEW</span><span class="star">⭐</span></td><td><a href="https://www.domain.com.au/52-rainford-street-surry-hills-nsw-2010-18184460">52 Rainford Street</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · Insp TODAY 1:30pm · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/206-crown-street-darlinghurst-nsw-2010-18183044">206 Crown Street</a><br><small>Darlinghurst</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp TODAY 1:30pm · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/107-greens-road-paddington-nsw-2021-15902443">107 Greens Road</a><br><small>Paddington</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp TODAY 9:35am · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-drop="1"><td><span class="drop">↓$74</span></td><td><a href="https://www.domain.com.au/surry-hills-nsw-2010-17580835">Address on enquiry</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,420</strong></td><td><span class="pill pg">Available</span></td><td>74m² · Was $1,494 · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/28-liverpool-street-paddington-nsw-2021-18188613">28 Liverpool Street</a><br><small>Paddington</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,485</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/10-stirling-street-redfern-nsw-2016-18183615">10 Stirling Street</a><br><small>Redfern</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/8-cook-road-centennial-park-nsw-2021-18188672">8 Cook Road</a><br><small>Centennial Park</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,535</strong></td><td><span class="pill pg">Available</span></td><td">2 parking · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/116-wallis-street-woollahra-nsw-2025-18170177">116 Wallis Street</a><br><small>Woollahra</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,650</strong></td><td><span class="pill pg">Available</span></td><td>Insp TODAY 1:30pm · <span class="pill py">Confirm courtyard</span></td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/376-bourke-street-surry-hills-nsw-2010-16532422">376 Bourke Street</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/2ba</td><td>—</td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ZONE 5: INNER WEST -->
+  <div class="zone" data-zone="5">
+    <h2>Zone 5 — Inner West <span class="sub">Newtown · Balmain · Annandale · Rozelle · Leichhardt · Petersham · Lilyfield · Camperdown · Croydon Park</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/94-johnston-street-annandale-nsw-2038-17456743">94 Johnston Street</a><br><small>Annandale</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>2 parking · Budget floor · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/3-reiby-street-newtown-nsw-2042-18168495">3 Reiby Street</a><br><small>Newtown</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,275</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/300-trafalgar-street-annandale-nsw-2038-14098512">300 Trafalgar Street</a><br><small>Annandale</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,280</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-pick="1"><td><span class="star">⭐</span></td><td><a href="https://www.domain.com.au/72-brocks-lane-newtown-nsw-2042-14840135">72 Brocks Lane</a><br><small>Newtown</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,295</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · 1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/39-beattie-street-balmain-nsw-2041-18182063">39 Beattie Street</a><br><small>Balmain</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,300</strong></td><td><span class="pill pg">Available</span></td><td">Balmain village · 1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/9-myrtle-lane-leichhardt-nsw-2040-18175667">9 Myrtle Lane</a><br><small>Leichhardt</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,300</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/136-foucart-street-rozelle-nsw-2039-18143708">136 Foucart Street</a><br><small>Rozelle</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,375</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/24-sparkes-street-camperdown-nsw-2050-18183364">24 Sparkes Street</a><br><small>Camperdown</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,390</strong></td><td><span class="pill pg">Available</span></td><td><span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/255-lilyfield-road-lilyfield-nsw-2040-14919719">255 Lilyfield Road</a><br><small>Lilyfield</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/9-ellen-street-rozelle-nsw-2039-18152752">9 Ellen Street</a><br><small>Rozelle</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/376-annandale-street-annandale-nsw-2038-18166196">376 Annandale Street</a><br><small>Annandale</small></td><td>House</td><td>3B/3ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>3ba · 1 parking · <span class="pill py">Confirm yard</span></td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/37-station-street-petersham-nsw-2049-18142166">37 Station Street</a><br><small>Petersham</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/25-starling-street-lilyfield-nsw-2040-16184406">25 Starling Street</a><br><small>Lilyfield</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,325</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/77-palace-street-petersham-nsw-2049-17278066">77 Palace Street</a><br><small>Petersham</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,350</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/165a-booth-street-annandale-nsw-2038-18157733">165A Booth Street</a><br><small>Annandale</small></td><td>House</td><td>3B/3ba</td><td><strong>$1,355</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/33-byrne-avenue-russell-lea-nsw-2046-18145286">33 Byrne Avenue</a><br><small>Russell Lea</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,600</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+    <p class="note">50 total listings in Inner West with pets filter. <a href="https://www.domain.com.au/rent/inner-west-nsw/house/3-bedrooms/?price=1250-1750&petsAllowed=1" target="_blank">See all →</a></p>
+  </div>
+
+  <!-- ZONE 6: NORTH SYDNEY -->
+  <div class="zone" data-zone="6">
+    <h2>Zone 6 — North Sydney <span class="sub">Crows Nest · North Sydney · Waverton · McMahons Point · Naremburn · Cammeray</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-pick="1"><td><span class="star">⭐</span></td><td><a href="https://www.domain.com.au/2-church-street-north-sydney-nsw-2060-18175111">2 Church Street</a><br><small>North Sydney</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Carried over · Budget floor · Insp TODAY 10:30am · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/152-atchison-street-crows-nest-nsw-2065-18149719">152 Atchison Street</a><br><small>Crows Nest</small></td><td>Semi</td><td>3B/1ba</td><td><strong>$1,450</strong></td><td><span class="pill pg">Available</span></td><td>1 parking · Insp TODAY 10:30am · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1" data-pick="1"><td><span class="badge">NEW</span><span class="star">⭐</span></td><td><a href="https://www.domain.com.au/5-tunks-street-waverton-nsw-2060-18185584">5 Tunks Street</a><br><small>Waverton</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>Top pick · 234m² · Insp TODAY 11am · <span class="pill po">Confirm pool</span> <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/86-albany-street-crows-nest-nsw-2065-18087728">86 Albany Street</a><br><small>Crows Nest</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,550</strong></td><td><span class="pill pg">Available</span></td><td">1 parking · Insp TODAY 11:15am · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1"><td></td><td><a href="https://www.domain.com.au/85-union-street-mcmahons-point-nsw-2060-18130690">85 Union Street</a><br><small>McMahons Point</small></td><td>Semi</td><td>3B/2ba</td><td><strong>$1,595</strong></td><td><span class="pill pg">Available</span></td><td>Harbour views likely · Insp TODAY 9:15am · <span class="pill py">Confirm yard</span></td></tr>
+        <tr data-avail="1" data-new="1"><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/1-wilson-street-cammeray-nsw-2062-18136266">1 Wilson Street</a><br><small>Cammeray</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,750</strong></td><td><span class="pill pg">Available</span></td><td>Budget max · 1 parking · Insp TODAY 11am · <span class="pill py">Confirm yard</span></td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/133-holtermann-street-crows-nest-nsw-2065-18106482">133 Holtermann Street</a><br><small>Crows Nest</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+        <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/12-martin-street-naremburn-nsw-2065-18131213">12 Martin Street</a><br><small>Naremburn</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pgr">Deposit Taken</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="note">Next scan: Friday 3 July 2026 · Full HTML report: sydney_rentals_06262026.html in Costa Rica Relocation folder</p>
+
+</div>
+<script>
+  const btns = document.querySelectorAll('#filters button');
+  btns.forEach(b => b.addEventListener('click', () => {
+    btns.forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    const f = b.dataset.f;
+    document.querySelectorAll('tbody tr').forEach(tr => {
+      if (f === 'all') tr.classList.remove('hidden');
+      else if (f === 'new') tr.classList.toggle('hidden', !tr.dataset.new);
+      else if (f === 'avail') tr.classList.toggle('hidden', !tr.dataset.avail);
+      else if (f === 'pick') tr.classList.toggle('hidden', !tr.dataset.pick);
+      else if (f === 'drop') tr.classList.toggle('hidden', !tr.dataset.drop);
+      else if (f === '2ba') {
+        const beds = tr.querySelector('td:nth-child(4)');
+        tr.classList.toggle('hidden', !beds || !beds.textContent.includes('2ba') && !beds.textContent.includes('3ba'));
+      }
+    });
+  }));
+</script>
+</body>
+</html>

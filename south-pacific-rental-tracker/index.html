@@ -1,0 +1,142 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "South Pacific Rental Tracker",
+  "schemaVersion": 1,
+  "description": "South Pacific long-term rental tracker for Lars & Kim — Dominical/Escaleras/Uvita/Ojochal. 17 listings with pool/strong-match filters and outreach status. Refreshed weekly by the south-pacific-rental-scan scheduled task."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>South Pacific Rental Tracker</title>
+<style>
+  :root { color-scheme: light; --teal:#0e7c7b; --navy:#17314f; --sand:#f6f1e7; --green:#1f8a4c; --green-bg:#e3f5e8; --red:#c0392b; --red-bg:#fbe6e3; --yellow:#9c7a00; --yellow-bg:#fff6da; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand); color:#222; margin:0; padding:0 0 40px; line-height:1.5; font-size:14px; }
+  header { background:linear-gradient(135deg,var(--navy),var(--teal)); color:#fff; padding:20px 24px; }
+  header h1 { margin:0 0 4px; font-size:1.3rem; }
+  header .meta { font-size:0.83rem; opacity:0.9; }
+  .wrap { padding:0 24px; max-width:1100px; margin:0 auto; }
+  .new-banner { background:#fff; border-left:5px solid var(--red); border-radius:0 6px 6px 0; padding:10px 16px; margin:18px 0 0; font-size:0.84rem; }
+  .new-banner strong { color:var(--red); }
+  .summary { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
+  .stat { background:#fff; border:1px solid #ddd7c4; border-radius:8px; padding:8px 14px; text-align:center; min-width:90px; }
+  .stat .n { font-size:1.5rem; font-weight:700; color:var(--navy); line-height:1.1; }
+  .stat .lbl { font-size:0.66rem; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; align-items:center; }
+  .controls strong { font-size:0.82rem; color:var(--navy); }
+  .controls button { border:1px solid #cfc7b2; background:#fff; color:var(--navy); border-radius:16px; padding:6px 13px; font-size:0.8rem; cursor:pointer; font-weight:600; }
+  .controls button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .zone h2 { color:#fff; background:var(--navy); padding:9px 14px; border-radius:6px 6px 0 0; margin:22px 0 0; font-size:1.02rem; }
+  .zone h2 .sub { font-size:0.78rem; opacity:0.85; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #e2dccb; padding:8px 9px; text-align:left; font-size:0.84rem; vertical-align:top; }
+  th { background:#eef3f2; color:var(--navy); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#fbfaf6; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:11px; font-size:0.7rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); } .pr { background:var(--red-bg); color:var(--red); } .py { background:var(--yellow-bg); color:var(--yellow); }
+  .badge { display:inline-block; background:var(--red); color:#fff; font-size:0.6rem; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:5px; vertical-align:middle; }
+  .badge-new { background:var(--red); }
+  .badge-upd { background:#7b5ea7; }
+  .badge-cont { background:var(--teal); }
+  a { color:var(--teal); text-decoration:none; } a:hover { text-decoration:underline; }
+  .outreach { background:#fff; border:1px solid #ddd; border-left:5px solid var(--teal); border-radius:0 6px 6px 0; padding:12px 16px; margin:22px 0 0; font-size:0.85rem; }
+  .outreach h3 { margin:0 0 6px; color:var(--navy); font-size:0.92rem; }
+  .note { font-size:0.78rem; color:#777; margin-top:18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌊 South Pacific Rental Tracker</h1>
+  <div class="meta">Dominical · Escaleras · Uvita · Bahía Ballena · Ojochal — weekly Friday scan for Lars &amp; Kim · Last updated: <strong>June 19, 2026</strong></div>
+</header>
+<div class="wrap">
+  <div class="new-banner">
+    <strong>🆕 NEW THIS WEEK (June 19):</strong> Tropical Villa Ojochal (Starlink + saltwater pool ⭐) · Villa Eco del Rio Uvita (pets confirmed) · Villa Jubilo Ojochal (200 Mbps) · Casa en el Cielo (3BR/4BA pool) · Casa Quetzal ⬆ upgraded (pets + fiber now confirmed).
+  </div>
+  <div class="summary">
+    <div class="stat"><div class="n">21</div><div class="lbl">Listings</div></div>
+    <div class="stat"><div class="n">11</div><div class="lbl">Strong Matches</div></div>
+    <div class="stat"><div class="n">4</div><div class="lbl">New This Week</div></div>
+    <div class="stat"><div class="n">11</div><div class="lbl">Drafts Created</div></div>
+  </div>
+  <div class="controls" id="filters">
+    <strong>Filter:</strong>
+    <button data-f="all" class="active">All</button>
+    <button data-f="pool">Pool ✓</button>
+    <button data-f="strong">Strong matches</button>
+    <button data-f="new">New this week</button>
+  </div>
+  <div id="zones"></div>
+  <div class="outreach">
+    <h3>✉️ Outreach Status (11 drafts, none sent yet)</h3>
+    <strong>June 19 — NEW drafts (4):</strong> Osa Property Management → Villa Eco del Rio + Villa Jubilo (consolidated to info@osapropertymanagement.com) · Tropical Villa Ojochal (Airbnb — self-addressed) · Casa en el Cielo (Airbnb — self-addressed) · Casa Quetzal (contact form — self-addressed).<br><br>
+    <strong>June 11 — Awaiting send (7):</strong> Ocean &amp; Sunset View + Casita → Joshua Kanter, WhatsApp +506 8703-1130 · 2BR+Office+Pool (Ojochal) → Kathia Araya, WhatsApp +506 7011-8399 · Villa Mountain Serenity, Casa de los Sueños, Casa Futura, Casa Fishplanx, Estilo de Vida → Costa Ballena Management (costaballenamanagement@yahoo.com).
+  </div>
+  <div class="note">Snapshot of the June 11–19, 2026 scans. Full HTML report (costa_rica_rentals_south_pacific_06192026.html) and contacts_log.json are in the D:\vc-personal-projects\costa-rica-relocation project folder.</div>
+</div>
+<script>
+const data=[
+ {z:"Zone 1 — Dominical / Escaleras / Lagunas de Barú",s:"Priority area",rows:[
+  {n:"Ocean &amp; Sunset View + Casita",a:"Lagunas de Barú",p:"$350/nt (LT TBD)",b:"4BR/3BA",pool:"g",pet:"y",net:"Fiber ✓",u:"https://www.dominicalproperty.com/property/ocean-and-sunset-view-home-with-pool-plus-casita/",src:"Dominical Property",note:"⭐ Ask monthly rate. ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Villa Mountain Serenity",a:"Cascada Azul",p:"Ask",b:"3BR/3BA",pool:"g",pet:"y",net:"USB data card (verify)",u:"http://www.costaballenamanagement.com/rentals-in-dominical-area.html",src:"Costa Ballena Mgmt",note:"⭐ A/C throughout. ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Casa de los Sueños",a:"Escaleras",p:"Ask",b:"3BR/2BA",pool:"g",pet:"y",net:"128kbps ⚠️",u:"http://www.costaballenamanagement.com/rentals-in-dominical-area.html",src:"Costa Ballena Mgmt",note:"⭐ Pool + jacuzzi. Slow internet — deal-breaker? ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Casa Cecilia",a:"Escaleras",p:"Ask",b:"Unknown",pool:"g",pet:"y",net:"Confirmed",u:"http://www.costaballenamanagement.com/rentals-in-dominical-area.html",src:"Costa Ballena Mgmt",note:"Need bedroom count. Covered in CBM draft 6/11.",st:0,isnew:0},
+  {n:"Casa Quetzal ⬆",a:"Lagunas de Barú",p:"$1,850",b:"2BR/2BA",pool:"g",pet:"g",net:"Fiber ✓ (Red y Com)",u:"https://www.dominicalproperty.com/property/casa-quetzal-long-term-rental-in-lagunas/",src:"Dominical Property",note:"⬆ UPDATED 6/19: pets considered ✓ + fiber ✓ + pool included ✓ now confirmed. 2BR only. ✉️ Drafted 6/19.",st:0,isnew:1},
+  {n:"Ocean View Home for Rent",a:"Escaleras",p:"$3,200",b:"2BR/2BA",pool:"y",pet:"y",net:"Ask",u:"",src:"Dominical Property",note:"Only 2BR. Backup option.",st:0,isnew:0}
+ ]},
+ {z:"Zone 2 — Uvita / Bahía Ballena / Playa Hermosa",s:"",rows:[
+  {n:"Villa Eco del Rio 🆕",a:"Uvita (gated, near river)",p:"Ask (Airbnb monthly TBD)",b:"3BR",pool:"g",pet:"g",net:"Ask",u:"https://costaricalasvillas.com/vacation-rental/villa-eco-del-rio-uvita-3-bedroom-private-pool/",src:"Osa Property Mgmt",note:"🆕 NEW. Pet-friendly confirmed via guest reviews (dogs stayed). Private pool, gated, AC each room. ✉️ Drafted 6/19.",st:1,isnew:1},
+  {n:"Casa Futura",a:"Uvita (4x4 access, 400ft)",p:"Ask",b:"3BR/3BA ensuite",pool:"g",pet:"y",net:"Fiber ✓",u:"http://www.costaballenamanagement.com/rentals-in-uvita-area.html",src:"Costa Ballena Mgmt",note:"⭐ Fiber, pool, Whale's Tail views. 4x4 needed. ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Casa Fishplanx",a:"Bahía (walk to beach)",p:"Ask",b:"3BR/3BA ensuite",pool:"g",pet:"y",net:"Wi-Fi ✓",u:"http://www.costaballenamanagement.com/rentals-in-uvita-area.html",src:"Costa Ballena Mgmt",note:"⭐ Courtyard pool, alarm + parking. ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Casa RoMa",a:"Bahía (near Marino Ballena NP)",p:"Ask",b:"2BR/2BA",pool:"g",pet:"g",net:"Fiber ✓",u:"",src:"—",note:"Only 2BR. Owner has dog + 3 cats — pets likely. Pool + fiber. Backup.",st:0,isnew:0},
+  {n:"Alegria Tropical",a:"Bahía",p:"Ask",b:"2BR",pool:"g",pet:"y",net:"Confirmed",u:"",src:"—",note:"2BR — likely short on bedrooms.",st:0,isnew:0},
+  {n:"Long Term Rental 2BR",a:"Uvita",p:"$1,300",b:"2BR/1BA",pool:"r",pet:"y",net:"Ask",u:"https://www.dominicalproperty.com/property/long-term-rental-home-in-uvita-2-bedrooms/",src:"Dominical Property",note:"Below criteria. Completeness only.",st:0,isnew:0}
+ ]},
+ {z:"Zone 3 — Ojochal / Tres Ríos / Cinco Ventanas",s:"Strong inventory this week",rows:[
+  {n:"Tropical Villa Ojochal | Starlink 🆕⭐",a:"Ojochal",p:"Ask (Airbnb monthly TBD)",b:"3BR/2.5BA",pool:"g",pet:"y",net:"Starlink ✓ ⭐",u:"https://www.airbnb.com/rooms/1450339894578676281",src:"Airbnb",note:"🆕 BEST NEW FIND. Saltwater pool, Starlink (top-tier remote work internet), mountain views, modern build. ✉️ Drafted 6/19.",st:1,isnew:1},
+  {n:"Villa Jubilo 🆕",a:"Ojochal",p:"Ask (monthly TBD)",b:"3BR/2BA",pool:"g",pet:"y",net:"200 Mbps ✓",u:"https://costaricalasvillas.com/vacation-rental/villa-jubilo-ojochal/",src:"Osa Property Mgmt",note:"🆕 NEW. Easy access (no 4x4), 200 Mbps confirmed. ✉️ Drafted 6/19 (consolidated w/ Villa Eco del Rio).",st:1,isnew:1},
+  {n:"Casa en el Cielo 🆕",a:"Ojochal (Punta Mala area)",p:"~$207/nt → ask LT rate",b:"3BR/4BA",pool:"g",pet:"y",net:"Wi-Fi ✓",u:"https://www.airbnb.com/rooms/906631002937492794",src:"Airbnb",note:"🆕 NEW. 3BR/4BA (extra baths a bonus), private pool, garden, BBQ. Ask monthly rate + pet policy. ✉️ Drafted 6/19.",st:1,isnew:1},
+  {n:"Estilo de Vida",a:"Cinco Ventanas, Ojochal",p:"Ask",b:"3BR/2.5BA",pool:"g",pet:"y",net:"Wi-Fi ✓",u:"http://www.costaballenamanagement.com/rentals-in-ojochal-area.html",src:"Costa Ballena Mgmt",note:"⭐⭐ BEST OVERALL SPEC MATCH — exact 3BR/2.5BA, pool + jacuzzi. ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Villa Cascadas",a:"Ojochal",p:"Ask",b:"3BR/2BA",pool:"g",pet:"y",net:"Ask",u:"http://www.costaballenamanagement.com/rentals-in-ojochal-area.html",src:"Costa Ballena Mgmt",note:"Zero-edge pool w/ LED, ocean + mountain views. Covered in CBM draft 6/11.",st:0,isnew:0},
+  {n:"2BR + Office + Pool",a:"Ojochal",p:"$1,600 + util",b:"2BR+office/2BA",pool:"g",pet:"y",net:"High-speed ✓",u:"https://www.dominicalproperty.com/property/for-rent-2-bedroom-home-office-room-pool-and-garden/",src:"Dominical Property",note:"⭐ Excellent 2BD+office fit. Pool, high-speed internet. ✉️ Drafted 6/11.",st:1,isnew:0},
+  {n:"Casa Dulce",a:"Ojochal (Avancari)",p:"Ask",b:"Unknown",pool:"y",pet:"r",net:"Wi-Fi ✓",u:"",src:"Costa Ballena Mgmt",note:"EXCLUDED — explicitly no pets. Listed for completeness only.",st:0,isnew:0}
+ ]}
+];
+const pc={g:"pg",y:"py",r:"pr"};
+let filter="all";
+function render(){
+  const c=document.getElementById("zones"); c.innerHTML="";
+  data.forEach(z=>{
+    const rows=z.rows.filter(r=>
+      filter==="all"?true:
+      filter==="pool"?r.pool==="g":
+      filter==="strong"?r.st===1:
+      filter==="new"?r.isnew===1:true
+    );
+    if(!rows.length) return;
+    let h=`<div class="zone"><h2>${z.z}${z.s?`<span class="sub">${z.s}</span>`:""}</h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Internet</th><th>Note</th></tr>`;
+    rows.forEach(r=>{
+      const badge=r.isnew?`<span class="badge badge-new">NEW 6/19</span>`:"";
+      const name=r.u?`<a href="${r.u}" target="_blank" rel="noopener">${r.n}</a>${badge}`:r.n+badge;
+      h+=`<tr><td>${name}<br><small style="color:#888">${r.src}</small></td><td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+         `<td><span class="pill ${pc[r.pool]}">${r.pool==="g"?"Pool ✓":r.pool==="r"?"No pool":"Ask"}</span></td>`+
+         `<td><span class="pill ${pc[r.pet]}">${r.pet==="g"?"Pets ✓":r.pet==="r"?"No pets ✗":"Ask"}</span></td>`+
+         `<td>${r.net}</td><td>${r.note}</td></tr>`;
+    });
+    h+=`</table></div>`;
+    c.insertAdjacentHTML("beforeend",h);
+  });
+}
+document.getElementById("filters").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return; filter=e.target.dataset.f;
+  try{localStorage.setItem("spF",filter);}catch(_){}
+  [...document.querySelectorAll("#filters button")].forEach(b=>b.classList.toggle("active",b===e.target));
+  render();
+});
+try{const s=localStorage.getItem("spF"); if(s){filter=s; const b=document.querySelector(`#filters button[data-f="${s}"]`); if(b){[...document.querySelectorAll("#filters button")].forEach(x=>x.classList.remove("active")); b.classList.add("active");}}}catch(_){}
+render();
+</script>
+</body>
+</html>

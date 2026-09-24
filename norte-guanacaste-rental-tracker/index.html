@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Norte Guanacaste Rental Tracker",
+  "schemaVersion": 1,
+  "description": "Norte Guanacaste long-term rental tracker for Lars & Kim — Playa Domingo → Tamarindo → Flamingo/Potrero. 9 listings with pool/strong-match filters and outreach status. Refreshed weekly by the norte-guanacaste-rental-scan scheduled task."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Norte Guanacaste Rental Tracker</title>
+<style>
+  :root { color-scheme: light; --teal:#0e7c7b; --navy:#17314f; --sand:#f6f1e7; --green:#1f8a4c; --green-bg:#e3f5e8; --red:#c0392b; --red-bg:#fbe6e3; --yellow:#9c7a00; --yellow-bg:#fff6da; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand); color:#222; margin:0; padding:0 0 40px; line-height:1.5; font-size:14px; }
+  header { background:linear-gradient(135deg,var(--navy),var(--teal)); color:#fff; padding:20px 24px; }
+  header h1 { margin:0 0 4px; font-size:1.3rem; }
+  header .meta { font-size:0.83rem; opacity:0.9; }
+  .wrap { padding:0 24px; max-width:1100px; margin:0 auto; }
+  .summary { display:flex; gap:10px; flex-wrap:wrap; margin:18px 0; }
+  .stat { background:#fff; border:1px solid #ddd7c4; border-radius:8px; padding:8px 14px; text-align:center; min-width:90px; }
+  .stat .n { font-size:1.5rem; font-weight:700; color:var(--navy); line-height:1.1; }
+  .stat .lbl { font-size:0.66rem; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; align-items:center; }
+  .controls strong { font-size:0.82rem; color:var(--navy); }
+  .controls button { border:1px solid #cfc7b2; background:#fff; color:var(--navy); border-radius:16px; padding:6px 13px; font-size:0.8rem; cursor:pointer; font-weight:600; }
+  .controls button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .zone h2 { color:#fff; background:var(--navy); padding:9px 14px; border-radius:6px 6px 0 0; margin:22px 0 0; font-size:1.02rem; }
+  .zone h2 .sub { font-size:0.78rem; opacity:0.85; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #e2dccb; padding:8px 9px; text-align:left; font-size:0.84rem; vertical-align:top; }
+  th { background:#eef3f2; color:var(--navy); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#fbfaf6; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:11px; font-size:0.7rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); } .pr { background:var(--red-bg); color:var(--red); } .py { background:var(--yellow-bg); color:var(--yellow); }
+  .badge { display:inline-block; background:var(--red); color:#fff; font-size:0.6rem; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:5px; vertical-align:middle; }
+  a { color:var(--teal); text-decoration:none; } a:hover { text-decoration:underline; }
+  .outreach { background:#fff; border:1px solid #ddd; border-left:5px solid var(--teal); border-radius:0 6px 6px 0; padding:12px 16px; margin:22px 0 0; font-size:0.85rem; }
+  .outreach h3 { margin:0 0 6px; color:var(--navy); font-size:0.92rem; }
+  .note { font-size:0.78rem; color:#777; margin-top:18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐢 Norte Guanacaste Rental Tracker</h1>
+  <div class="meta">Playa Domingo → Avellanas/Negra → Tamarindo/Villareal → Playa Grande → Flamingo/Potrero — weekly Friday scan for Lars &amp; Kim · Last updated: <strong>June 12, 2026</strong></div>
+</header>
+<div class="wrap">
+  <div class="summary">
+    <div class="stat"><div class="n">9</div><div class="lbl">Listings</div></div>
+    <div class="stat"><div class="n">4</div><div class="lbl">Strong Matches</div></div>
+    <div class="stat"><div class="n">9</div><div class="lbl">New This Week</div></div>
+    <div class="stat"><div class="n">4</div><div class="lbl">Emails Drafted</div></div>
+  </div>
+  <div class="controls" id="filters">
+    <strong>Filter:</strong>
+    <button data-f="all" class="active">All</button>
+    <button data-f="pool">Pool ✓</button>
+    <button data-f="strong">Strong matches</button>
+  </div>
+  <div id="zones"></div>
+  <div class="outreach">
+    <h3>✉️ Outreach drafted (4, not sent)</h3>
+    Casa Tigre + Riviera Casa 5 → Flamingo Costa Rica, self-addressed/WhatsApp +1-941-951-6222 (consolidated) · Buda House + Pacific Residences #13 → Hidden Coast Realty, info@hiddencoastrealty.com (consolidated) · 3BR Beach House Playa Grande → 1st Choice Realty · Rent Avellanas Portfolio.
+  </div>
+  <div class="note">Snapshot of the June 12, 2026 scan. Southern anchor Playa Domingo (~2 hr from LIR) not yet covered — flagged for clarification. Refreshed weekly by the <code>norte-guanacaste-rental-scan</code> task.</div>
+</div>
+<script>
+const data=[
+ {z:"Zone 1 — Playa Flamingo &amp; Playa Potrero",s:"~50 min from Liberia LIR",rows:[
+  {n:"Casa Tigre",a:"Playa Flamingo",p:"$3,200",b:"3BR/3BA",pool:"y",pet:"y",u:"",src:"Flamingo CR",note:"⭐ Ocean/mountain/beach views. ✉️ Drafted.",st:1},
+  {n:"Riviera Casa 5",a:"Playa Potrero",p:"$3,000",b:"3BR/2BA",pool:"y",pet:"y",u:"",src:"Flamingo CR",note:"Riverfront, ocean-vicinity. ✉️ Drafted.",st:1}
+ ]},
+ {z:"Zone 2 — Playa Grande",s:"~1:15 from LIR · Leatherback reserve area",rows:[
+  {n:"3BR Beach House (Leatherback area)",a:"Playa Grande",p:"Ask LT rate",b:"3BR/2BA",pool:"y",pet:"y",u:"",src:"1st Choice Realty",note:"2-min walk to beach. Vacation $220/nt — negotiate LT. ✉️ Drafted.",st:1}
+ ]},
+ {z:"Zone 3 — Tamarindo &amp; Villareal",s:"~1:20 from LIR",rows:[
+  {n:"Pacific Residences #13",a:"Villareal (5 min to Tamarindo)",p:"$3,600",b:"4BR/3.5BA",pool:"g",pet:"y",u:"",src:"Hidden Coast Realty",note:"⭐ Gated, A/C, new build, 12-mo lease. ✉️ Drafted.",st:1},
+  {n:"Buda House",a:"Villareal",p:"$4,500 + util",b:"4BR/3.5BA",pool:"g",pet:"g",u:"",src:"Hidden Coast Realty",note:"⭐ Gated, small dogs OK, avail Aug 15. ✉️ Drafted.",st:1},
+  {n:"Villa Verde I #02",a:"Tamarindo",p:"$3,400",b:"3BR/3.5BA",pool:"y",pet:"y",u:"",src:"Hidden Coast Realty",note:"Furnished apt, shared pool. Lower priority.",st:0},
+  {n:"Villa Verde I #14",a:"Tamarindo",p:"$3,400 ↓",b:"3BR/3.5BA",pool:"y",pet:"y",u:"",src:"Hidden Coast Realty",note:"Renovated condo, price drop. Lower priority.",st:0}
+ ]},
+ {z:"Zone 4 — Playa Avellanas &amp; Playa Negra",s:"~1:35–1:50 from LIR · approaching the Playa Domingo anchor",rows:[
+  {n:"Rent Avellanas Portfolio (6 homes)",a:"Playa Avellanas",p:"From $2,300",b:"2BR/2BA",pool:"g",pet:"g",u:"",src:"Avellanas rentals",note:"⚠️ 2BR only. Bosque del Sol, Sommerhaus, etc. ✉️ Drafted.",st:0}
+ ]}
+];
+const pc={g:"pg",y:"py",r:"pr"};
+let filter="all";
+function render(){
+  const c=document.getElementById("zones"); c.innerHTML="";
+  data.forEach(z=>{
+    const rows=z.rows.filter(r=> filter==="all"?true: filter==="pool"?r.pool==="g": r.st===1);
+    if(!rows.length) return;
+    let h=`<div class="zone"><h2>${z.z}${z.s?`<span class="sub">${z.s}</span>`:""}</h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Note</th></tr>`;
+    rows.forEach(r=>{
+      h+=`<tr><td>${r.n}<br><small>${r.src}</small></td><td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+         `<td><span class="pill ${pc[r.pool]}">${r.pool==="g"?"Private pool ✓":r.pool==="r"?"No pool":"Ask"}</span></td>`+
+         `<td><span class="pill ${pc[r.pet]}">${r.pet==="g"?"Pets ✓":"Ask"}</span></td><td>${r.note}</td></tr>`;
+    });
+    h+=`</table></div>`;
+    c.insertAdjacentHTML("beforeend",h);
+  });
+}
+document.getElementById("filters").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return; filter=e.target.dataset.f;
+  try{localStorage.setItem("ngF",filter);}catch(_){}
+  [...document.querySelectorAll("#filters button")].forEach(b=>b.classList.toggle("active",b===e.target));
+  render();
+});
+try{const s=localStorage.getItem("ngF"); if(s){filter=s; const b=document.querySelector(`#filters button[data-f="${s}"]`); if(b){[...document.querySelectorAll("#filters button")].forEach(x=>x.classList.remove("active")); b.classList.add("active");}}}catch(_){}
+render();
+</script>
+</body>
+</html>

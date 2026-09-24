@@ -1,0 +1,176 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Nicoya Rental Tracker",
+  "schemaVersion": 1,
+  "description": "Nicoya Peninsula long-term rental tracker for Lars & Kim — Nosara (Guiones/Pelada/Garza) + Sámara/Carrillo. 29 listings with pool/pet/new/drafted filters. Refreshed weekly by the nicoya-rental-search scheduled task."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nicoya Peninsula Rental Tracker</title>
+<style>
+  :root { color-scheme: light; --teal:#0e7c7b; --navy:#17314f; --sand:#f6f1e7; --green:#1f8a4c; --green-bg:#e3f5e8; --red:#c0392b; --red-bg:#fbe6e3; --yellow:#9c7a00; --yellow-bg:#fff6da; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand); color:#222; margin:0; padding:0 0 40px; line-height:1.5; font-size:14px; }
+  header { background:linear-gradient(135deg,var(--navy),var(--teal)); color:#fff; padding:20px 24px; }
+  header h1 { margin:0 0 4px; font-size:1.3rem; }
+  header .meta { font-size:0.83rem; opacity:0.9; }
+  .wrap { padding:0 24px; max-width:1100px; margin:0 auto; }
+  .summary { display:flex; gap:10px; flex-wrap:wrap; margin:18px 0; }
+  .stat { background:#fff; border:1px solid #ddd7c4; border-radius:8px; padding:8px 14px; text-align:center; min-width:90px; }
+  .stat .n { font-size:1.5rem; font-weight:700; color:var(--navy); line-height:1.1; }
+  .stat .lbl { font-size:0.66rem; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  .new-banner { background:#fff; border-left:6px solid var(--red); border-radius:6px; padding:12px 16px; margin:14px 0; font-size:0.85rem; }
+  .new-banner strong { color:var(--red); }
+  .new-banner ul { margin:6px 0 0; padding-left:18px; }
+  .new-banner li { margin-bottom:3px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; align-items:center; }
+  .controls strong { font-size:0.82rem; color:var(--navy); }
+  .controls button { border:1px solid #cfc7b2; background:#fff; color:var(--navy); border-radius:16px; padding:6px 13px; font-size:0.8rem; cursor:pointer; font-weight:600; }
+  .controls button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .zone h2 { color:#fff; background:var(--navy); padding:9px 14px; border-radius:6px 6px 0 0; margin:22px 0 0; font-size:1.02rem; }
+  .zone h2 .sub { font-size:0.78rem; opacity:0.85; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #e2dccb; padding:8px 9px; text-align:left; font-size:0.84rem; vertical-align:top; }
+  th { background:#eef3f2; color:var(--navy); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#fbfaf6; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:11px; font-size:0.7rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); } .pr { background:var(--red-bg); color:var(--red); } .py { background:var(--yellow-bg); color:var(--yellow); }
+  .badge { display:inline-block; background:var(--red); color:#fff; font-size:0.6rem; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:5px; vertical-align:middle; }
+  .star-badge { display:inline-block; background:#e67e22; color:#fff; font-size:0.6rem; font-weight:700; padding:1px 6px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  a { color:var(--teal); text-decoration:none; } a:hover { text-decoration:underline; }
+  .outreach { background:#fff; border:1px solid #ddd; border-left:5px solid var(--teal); border-radius:0 6px 6px 0; padding:12px 16px; margin:22px 0 0; font-size:0.85rem; }
+  .outreach h3 { margin:0 0 8px; color:var(--navy); font-size:0.92rem; }
+  .outreach-item { margin:6px 0; padding:6px 10px; border-radius:4px; }
+  .outreach-item.ready { background:#e3f5e8; }
+  .outreach-item.pending { background:#fff6da; }
+  .outreach-item.waiting { background:#f8f9fa; }
+  .note { font-size:0.78rem; color:#777; margin-top:18px; }
+  .removed { background:#f8f9fa; border:1px solid #ddd; border-radius:4px; padding:8px 12px; margin-top:18px; font-size:0.8rem; color:#666; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏖 Nicoya Peninsula Rental Tracker</h1>
+  <div class="meta">Nosara (Guiones · Pelada · Garza) + Sámara/Carrillo — weekly Friday scan for Lars &amp; Kim · Last updated: <strong>June 19, 2026</strong></div>
+</header>
+<div class="wrap">
+  <div class="new-banner">
+    <strong>🆕 NEW THIS WEEK (June 19):</strong> 9 new listings found — biggest development is Vacation Nosara's long-term page now shows public monthly pricing for 7 qualifying houses.
+    <ul>
+      <li>⭐ <strong>Villa Huitzilin</strong> — 4BR/4BA, saltwater pool, Starlink+fiber WiFi, desks in every room. Top remote-work pick.</li>
+      <li>⭐ <strong>Vacation Nosara batch</strong> (7 properties, $3,000–$4,200): Casa de Calma, Pochote, Casa Arena, Casa Saltamontes, Patitos Casa, Girasol, Casa Ocaso. All 3–4BR with pool, walk to beach.</li>
+      <li><strong>Casa Dos Cocos</strong> (Rent Nosara) — 4BR/4.5BA, Guiones Beach Club.</li>
+    </ul>
+    <strong>Removed:</strong> Both Sámara pool listings on Encuentra24 deleted (likely rented).
+  </div>
+  <div class="summary">
+    <div class="stat"><div class="n" id="s-total">29</div><div class="lbl">Listings</div></div>
+    <div class="stat"><div class="n">14</div><div class="lbl">Strong Matches</div></div>
+    <div class="stat"><div class="n">9</div><div class="lbl">New This Week</div></div>
+    <div class="stat"><div class="n">4</div><div class="lbl">Drafts Ready</div></div>
+  </div>
+  <div class="controls" id="filters">
+    <strong>Filter:</strong>
+    <button data-f="all" class="active">All</button>
+    <button data-f="pool">Pool ✓</button>
+    <button data-f="pet">Pets ✓</button>
+    <button data-f="new">New this week</button>
+    <button data-f="drafted">Outreach drafted</button>
+  </div>
+  <div id="zones"></div>
+  <div class="outreach">
+    <h3>✉️ Outreach Status — June 19, 2026</h3>
+    <div class="outreach-item ready">✅ <strong>READY TO SEND:</strong> Vacation Nosara (7 properties) → reservations@vacationnosara.com (Gmail draft r221854163974400612)</div>
+    <div class="outreach-item ready">✅ <strong>READY TO SEND:</strong> Rent Nosara (Casa Estrellas + Casa Dos Cocos) → info@rentnosara.com (Gmail draft r-7175475303642038667)</div>
+    <div class="outreach-item ready">⚠️ <strong>READY — PASTE TO WHATSAPP:</strong> Alba Reservations +506 8817-6555 (Villa Huitzilin, Jungle Houses A&amp;B, Casa Rincón, Casa Bellevue) → Self-addressed draft r8761734973145469282</div>
+    <div class="outreach-item waiting">🕐 <strong>WAITING (from 06-12, not confirmed sent):</strong> Mango Property Mgmt → mpmnosararentals@gmail.com (Private Beach House, Playa Pelada)</div>
+    <div class="outreach-item pending">⏳ <strong>PENDING — Airbnb (from 06-12):</strong> Casa Guapa, Jungle River Villa, house savana, Sunset Surf — drafts created 06-12, contact via Airbnb message.</div>
+  </div>
+  <div class="removed">
+    🗑️ <strong>Removed since June 12:</strong> "Alquiler Casa en Sámara Guanacaste 3 hab en condominio" (Encuentra24 #30961783) — deleted. "Se alquila casa con piscina en Sámara" (Encuentra24 #31002475) — deleted. Both likely rented.
+  </div>
+  <div class="note">Snapshot of the June 19, 2026 scan. Refreshed weekly by the <code>nicoya-rental-search</code> scheduled task. Full report (costa_rica_rentals_nicoya_06192026.html) &amp; logs in the Costa Rica Relocation project folder. Note: Airbnb prices from June 12 — Chrome browser unavailable this run.</div>
+</div>
+<script>
+const data=[
+ {z:"Zone 1 — Nosara (Guiones · Pelada · Garza)",s:"Priority area",rows:[
+  {n:"Villa Huitzilin",a:"Las Tecas (10-min walk to Pelada & Guiones)",p:"Inquire",b:"4BR/4BA",pool:"g",pet:"y",wifi:"g",u:"https://www.nosararealestate.com/listing/villa-huitzilin/",src:"Nosara RE",note:"⭐ TOP PICK. Saltwater pool, Starlink+fiber WiFi, desks in every room, single-story large lot, sauna+cold plunge. Newly listed Feb 2026. Draft: WhatsApp +506 8817-6555",nw:1,drafted:1},
+  {n:"Casa de Calma",a:"Nosara — walk to beach",p:"From $3,000",b:"3BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"⭐ Best entry price VN batch. LT rate negotiated separately (lower). Draft ready.",nw:1,drafted:1},
+  {n:"Pochote",a:"Nosara — Guiones, walk to beach",p:"From $3,750",b:"3BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"⭐ Guiones walk-to-beach. Consolidated in VN draft.",nw:1,drafted:1},
+  {n:"Casa Arena",a:"Nosara — Guiones, walk to beach",p:"From $3,800",b:"4BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"⭐ 4BR flexibility. Consolidated in VN draft.",nw:1,drafted:1},
+  {n:"Casa Saltamontes",a:"Nosara — lush jungle",p:"From $3,800",b:"3BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"⭐ Private jungle setting. Consolidated in VN draft.",nw:1,drafted:1},
+  {n:"Patitos Casa",a:"Nosara — downtown Guiones, walk to beach",p:"From $3,800",b:"3BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"⭐ Best walkability. Consolidated in VN draft.",nw:1,drafted:1},
+  {n:"Girasol",a:"Nosara — private, walk to beach",p:"From $4,000",b:"3BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"⭐ Described as private. Consolidated in VN draft.",nw:1,drafted:1},
+  {n:"Casa Ocaso",a:"Nosara — walk to beach",p:"From $4,200",b:"4BR/?BA",pool:"g",pet:"y",wifi:"y",u:"https://www.vacationnosara.com/long-term-rentals-vacationnosara",src:"Vacation Nosara",note:"At ceiling (pre-VAT). Ask for LT rate reduction. Consolidated in VN draft.",nw:1,drafted:1},
+  {n:"Casa Dos Cocos",a:"Nosara — Guiones Beach Club",p:"Inquire",b:"4BR/4.5BA",pool:"y",pet:"y",wifi:"y",u:"https://rentnosarareservations.com/en/4544191/casa-dos-cocos-4-br-home-walk-to-beach-surf",src:"RentNosara",note:"New 06-19. Pool unconfirmed. Consolidated with Casa Estrellas in RentNosara draft.",nw:1,drafted:1},
+  {n:"Private Beach House w/ Pool",a:"Playa Pelada",p:"Inquire (LT disc.)",b:"3BR/2BA",pool:"g",pet:"g",wifi:"y",u:"https://www.vrbo.com/208021",src:"VRBO",note:"✉️ Draft to Mango PM (mpmnosararentals@gmail.com) created 06-12 — confirm sent.",nw:0,drafted:1},
+  {n:"Casa Estrellas",a:"Guiones North",p:"Inquire",b:"3BR/3BA",pool:"g",pet:"y",wifi:"y",u:"https://rentnosarareservations.com/en/3385656/casa-estrellas-walk-to-beach-surf-private-pool",src:"RentNosara",note:"⭐ Walk to beach, private pool. Consolidated in RentNosara draft (06-19).",nw:0,drafted:1},
+  {n:"Casa Guapa",a:"Nosara",p:"$3,228",b:"4BR/3BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/1358801564376098855",src:"Airbnb",note:"⭐ Best confirmed Nosara Airbnb. Airbnb draft 06-12.",nw:0,drafted:1},
+  {n:"Jungle River Villa w/ Pool",a:"Nosara",p:"$2,754",b:"3BR/2BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/858056831871659915",src:"Airbnb",note:"⭐ Solid match, in budget. Airbnb draft 06-12.",nw:0,drafted:1},
+  {n:"Best long term option in Nosara",a:"Nosara",p:"$4,062",b:"3BR/1.5BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/1176022408361757391",src:"Airbnb",note:"Near ceiling, only 1.5BA. Backup.",nw:0,drafted:0},
+  {n:"Jungle House A",a:"Guiones",p:"Inquire",b:"3BR/4BA",pool:"g",pet:"y",wifi:"y",u:"https://www.nosararealestate.com/listing/jungle-house-a-3-br-w-private-pool/",src:"Nosara RE",note:"Private pool. WhatsApp draft consolidated w/ Villa Huitzilin (06-19).",nw:0,drafted:1},
+  {n:"Jungle House B",a:"Guiones",p:"Inquire",b:"3BR/4BA",pool:"g",pet:"y",wifi:"y",u:"https://www.nosararealestate.com/listing/jungle-house-b-3-br-w-private-pool/",src:"Nosara RE",note:"Private pool. WhatsApp draft consolidated w/ Villa Huitzilin (06-19).",nw:0,drafted:1},
+  {n:"Casa Rincón Escondido",a:"Guiones North (G)",p:"Inquire",b:"3BR/3.5BA",pool:"y",pet:"y",wifi:"y",u:"https://www.nosararealestate.com/listing/casa-rincon-escondido/",src:"Nosara RE",note:"WhatsApp draft consolidated w/ Villa Huitzilin (06-19).",nw:0,drafted:1},
+  {n:"Casa Bellevue",a:"Guiones",p:"Inquire",b:"3BR/3.5BA",pool:"y",pet:"y",wifi:"y",u:"https://www.nosararealestate.com/listing/casa-bellevue-location-location-location/",src:"Nosara RE",note:"\"Location, location, location.\" WhatsApp draft 06-19.",nw:0,drafted:1}
+ ]},
+ {z:"Zone 2 — Sámara / Carrillo",s:"",rows:[
+  {n:"house savana",a:"Sámara",p:"$2,357 (06-12 price)",b:"3BR/3BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/1310226203628143270",src:"Airbnb",note:"⭐ Budget-friendly. Airbnb draft 06-12. Verify price current.",nw:0,drafted:1},
+  {n:"Sunset Surf",a:"Sámara",p:"$2,409 (06-12 price)",b:"3BR/2BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/1453719288606856325",src:"Airbnb",note:"Solid price. Airbnb draft 06-12. Verify price current.",nw:0,drafted:1},
+  {n:"ecotourism guayacanes, house 5",a:"Sámara",p:"$3,659 (06-12 price)",b:"3BR/2BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/1371995657376407469",src:"Airbnb",note:"Ecotourism community. No draft yet.",nw:0,drafted:0},
+  {n:"New 3BR/3.5BA Container Home",a:"Sámara",p:"$3,843 (06-12 price)",b:"3BR/3.5BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/48869496",src:"Airbnb",note:"Contemporary. No draft yet.",nw:0,drafted:0},
+  {n:"Casa AZUL (Beach House)",a:"Sámara",p:"$4,002 (06-12 price)",b:"3BR/1BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/52778323",src:"Airbnb",note:"At ceiling, only 1BA. Low priority.",nw:0,drafted:0},
+  {n:"Casa Bejuco — Ocean View Furnished",a:"Bejuco (Nandayure border)",p:"$2,500",b:"3BR/2BA",pool:"y",pet:"y",wifi:"y",u:"https://www.encuentra24.com/costa-rica-en/real-estate-for-rent-houses/ocean-view-furnished-house-for-rent-guanacaste-bejuco-nandayure-costa-rica/31215846",src:"Encuentra24",note:"200m², ocean view, furnished. Pool unconfirmed. Interior location. No draft yet.",nw:0,drafted:0}
+ ]},
+ {z:"Other Nearby — Guanacaste Province",s:"Confirm proximity to coast",rows:[
+  {n:"The Sun and the Moon",a:"Guanacaste Prov.",p:"$2,910 (06-12 price)",b:"3BR/1.5BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/23481115",src:"Airbnb",note:"Verify exact location vs. Nosara/Sámara.",nw:0,drafted:0},
+  {n:"Casa Congo (Private w/ Pool)",a:"Caimital",p:"$2,336 (06-12 price)",b:"3BR/2BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/949577319191141326",src:"Airbnb",note:"Inland near Nicoya town — confirm distance to coast.",nw:0,drafted:0},
+  {n:"Casa Rosales",a:"Cuesta Grande",p:"$3,613 (06-12 price)",b:"3BR/2BA",pool:"g",pet:"g",wifi:"y",u:"https://www.airbnb.com/rooms/1261062004003613797",src:"Airbnb",note:"Verify proximity to priority areas.",nw:0,drafted:0}
+ ]}
+];
+const excluded="⚠️ Below criteria / excluded: Lambert Casita (Nosara, $1,600, 2BR/1BA). Removed: Sámara condominio & Sámara pool listing — both deleted on Encuentra24 (likely rented). Airbnb prices marked (06-12 price) need live verification — Chrome browser was unavailable for June 19 run.";
+const pc={g:"pg",y:"py",r:"pr"};
+let filter="all";
+function pillLabel(v,yes,ask){return v==="g"?yes:v==="r"?"No":"Ask";}
+function render(){
+  const c=document.getElementById("zones"); c.innerHTML="";
+  let total=0;
+  data.forEach(z=>{
+    const rows=z.rows.filter(r=>{
+      if(filter==="all") return true;
+      if(filter==="pool") return r.pool==="g";
+      if(filter==="pet") return r.pet==="g";
+      if(filter==="new") return r.nw===1;
+      if(filter==="drafted") return r.drafted===1;
+      return true;
+    });
+    if(!rows.length) return;
+    total+=rows.length;
+    let h=`<div class="zone"><h2>${z.z}${z.s?`<span class="sub">${z.s}</span>`:""}</h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Wi-Fi</th><th>Note</th></tr>`;
+    rows.forEach(r=>{
+      const name=r.u?`<a href="${r.u}" target="_blank" rel="noopener">${r.n}</a>`:r.n;
+      h+=`<tr><td>${name}${r.nw?'<span class="badge">NEW</span>':''}${r.drafted?'<span class="star-badge">✉️</span>':''}<br><small>${r.src}</small></td>`+
+         `<td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+         `<td><span class="pill ${pc[r.pool]}">${pillLabel(r.pool,"Pool ✓","Ask")}</span></td>`+
+         `<td><span class="pill ${pc[r.pet]}">${pillLabel(r.pet,"Pets ✓","Ask")}</span></td>`+
+         `<td><span class="pill ${pc[r.wifi]}">${pillLabel(r.wifi,"Wi-Fi ✓","Ask")}</span></td>`+
+         `<td>${r.note}</td></tr>`;
+    });
+    h+=`</table></div>`;
+    c.insertAdjacentHTML("beforeend",h);
+  });
+  document.getElementById("s-total").textContent=total;
+  c.insertAdjacentHTML("beforeend",`<div class="note">${excluded}</div>`);
+}
+document.getElementById("filters").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  filter=e.target.dataset.f;
+  [...document.querySelectorAll("#filters button")].forEach(b=>b.classList.toggle("active",b===e.target));
+  render();
+});
+render();
+</script>
+</body>
+</html>

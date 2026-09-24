@@ -1,0 +1,264 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Austin Rental Tracker",
+  "schemaVersion": 1,
+  "description": "Austin TX rental tracker — 4 districts, Zillow/Apartments.com/HAR, pets (cat + medium lab), 12-mo lease, Fall/Winter 2026. Last scan: June 26, 2026."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Austin Rental Tracker</title>
+<style>
+  :root { color-scheme: light;
+    --rust:#8b2500; --brown:#4a2c0a; --sand:#fdf8f2; --green:#1a7a3f; --green-bg:#e6f4ec;
+    --red:#b91c1c; --red-bg:#fee2e2; --yellow:#856404; --yellow-bg:#fff8e1;
+    --orange:#c05621; --orange-bg:#fff7ed; --grey:#6b7280; --grey-bg:#f3f4f6;
+    --blue:#0369a1; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand);
+    color:#1f2937; margin:0; padding:0 0 40px; line-height:1.5; }
+  header { background:linear-gradient(135deg,var(--brown),var(--rust)); color:#fff; padding:22px 28px; }
+  header h1 { margin:0 0 4px; font-size:1.35rem; }
+  header .meta { font-size:0.85rem; opacity:0.9; }
+  .wrap { padding:0 24px; max-width:1100px; margin:0 auto; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; align-items:center; }
+  .controls button { border:1px solid #c9b89a; background:#fff; color:var(--brown); border-radius:16px;
+    padding:6px 14px; font-size:0.82rem; cursor:pointer; font-weight:600; transition:all 0.15s; }
+  .controls button.active { background:var(--brown); color:#fff; border-color:var(--brown); }
+  .controls button:hover:not(.active) { background:#f5ede0; }
+  .stats { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+  .stat { background:#fff; border:1px solid #ddd0bc; border-radius:8px; padding:10px 16px; text-align:center; min-width:100px; }
+  .stat .num { font-size:1.5rem; font-weight:800; color:var(--rust); }
+  .stat .lbl { font-size:0.72rem; color:var(--grey); margin-top:1px; }
+  .outreach-box { background:#fff; border:1px solid #ddd0bc; border-radius:6px; padding:12px 16px; margin:16px 0; font-size:0.85rem; }
+  .outreach-box h3 { margin:0 0 8px; color:var(--brown); font-size:0.95rem; }
+  .status-row { display:flex; align-items:center; gap:8px; margin:5px 0; font-size:0.83rem; }
+  .sdot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .sdot.none { background:#d1d5db; }
+  .sdot.green { background:#1a7a3f; }
+  .zone { margin:24px 0; }
+  .zone h2 { color:#fff; background:var(--brown); padding:9px 16px; border-radius:6px 6px 0 0; margin:0; font-size:1rem; }
+  .zone .sub { font-size:0.78rem; opacity:0.82; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #e8ddd0; padding:9px 10px; text-align:left; font-size:0.83rem; vertical-align:top; }
+  th { background:#f5ede0; color:var(--brown); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#fdf8f2; }
+  tr.off-market td { opacity:0.45; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:12px; font-size:0.71rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); }
+  .pr { background:var(--red-bg); color:var(--red); }
+  .py { background:var(--yellow-bg); color:var(--yellow); }
+  .po { background:var(--orange-bg); color:var(--orange); }
+  .pgr { background:var(--grey-bg); color:var(--grey); }
+  .pb { background:#dbeafe; color:var(--blue); }
+  .star { display:inline-block; background:#f59e0b; color:#fff; font-size:0.62rem; font-weight:700;
+    padding:1px 6px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  a { color:var(--blue); text-decoration:none; } a:hover { text-decoration:underline; }
+  .hidden { display:none !important; }
+  .note { font-size:0.8rem; color:#777; margin-top:16px; background:#fffbeb; border-left:3px solid #f59e0b;
+    padding:10px 14px; border-radius:0 6px 6px 0; }
+  .criteria { background:#fff; border:1px solid #ddd0bc; border-radius:6px; padding:14px 18px; margin:16px 0; font-size:0.83rem; }
+  .criteria h3 { margin:0 0 8px; color:var(--brown); font-size:0.9rem; }
+  .criteria-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:6px; }
+  .criteria-item { display:flex; align-items:flex-start; gap:5px; }
+  .price-tag { font-size:0.9rem; font-weight:700; color:var(--green); }
+  .price-drop { font-size:0.7rem; color:var(--red); text-decoration:line-through; margin-left:4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤠 Austin Rental Tracker</h1>
+  <div class="meta">4 districts · Zillow / Apartments.com / HAR.com · Pets (cat + medium lab) · 12-mo lease · Move-in Fall/Winter 2026 · <strong>Scanned: June 26, 2026</strong></div>
+</header>
+<div class="wrap">
+
+  <!-- CRITERIA -->
+  <div class="criteria">
+    <h3>Search Criteria</h3>
+    <div class="criteria-grid">
+      <div class="criteria-item">🐾 Cat + medium black lab (non-restricted)</div>
+      <div class="criteria-item">📅 12-month lease minimum</div>
+      <div class="criteria-item">📦 Move-in: Fall/Winter 2026</div>
+      <div class="criteria-item">🌐 Fiber or Starlink preferred</div>
+      <div class="criteria-item">🏊 Pool/spa preferred but not required</div>
+      <div class="criteria-item">🏠 Furnished or unfurnished OK</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="num">9</div><div class="lbl">Known leads</div></div>
+    <div class="stat"><div class="num">7</div><div class="lbl">Active</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">Off market</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">⚠️ Confirm lab OK</div></div>
+    <div class="stat"><div class="num">4</div><div class="lbl">Districts</div></div>
+  </div>
+
+  <!-- OUTREACH STATUS -->
+  <div class="outreach-box">
+    <h3>📧 Outreach Status</h3>
+    <div class="status-row"><span class="sdot none"></span><strong>NOT STARTED</strong> — 7 active leads confirmed June 26. 2 flagged for pet policy follow-up (3206 Kerbey Ln &amp; 129 Coleman St list "cats + small dogs" — need to confirm medium lab OK before pursuing).</div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="controls" id="filters">
+    <strong style="font-size:0.82rem;color:var(--brown)">Filter:</strong>
+    <button data-f="all" class="active">All (9)</button>
+    <button data-f="avail">Active only</button>
+    <button data-f="pool">🏊 Pool</button>
+    <button data-f="pick">⭐ Top picks</button>
+  </div>
+
+  <!-- DISTRICT 1: DOWNTOWN / EAST AUSTIN / ZILKER -->
+  <div class="zone" data-zone="1">
+    <h2>District 1 — Downtown / East Austin / Zilker <span class="sub">78701 · 78702 · 78704 · Budget up to $5,000/mo · Condos preferred · 2BR+office or 3BR+</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address / Property</th><th>Type</th><th>Bed/Bath</th><th>Price/mo</th><th>Status</th><th>Sqft</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-pick="1">
+          <td><span class="star">⭐ PICK</span></td>
+          <td><a href="https://www.apartments.com/800-embassy-dr-austin-tx/tvpjj2c/" target="_blank">800 Embassy Dr #420</a><br><small>The Tyndall · 78702</small></td>
+          <td>Condo</td><td>2BR+office/2BA</td>
+          <td class="price-tag">$3,200</td>
+          <td><span class="pill pg">Active</span></td>
+          <td>1,200 sqft</td>
+          <td>Pool + dog park · cats+dogs confirmed · avail now · 12-mo</td>
+        </tr>
+        <tr data-avail="1" data-pick="1">
+          <td><span class="star">⭐ PICK</span></td>
+          <td><a href="https://www.apartments.com/84-east-ave-austin-tx-unit-2903/pg5mlqr/" target="_blank">84 East Ave #2903</a><br><small>Vesper · 78701</small></td>
+          <td>Condo</td><td>2BR/2BA</td>
+          <td class="price-tag">$3,500</td>
+          <td><span class="pill pg">Active</span></td>
+          <td>969 sqft</td>
+          <td>Rooftop pool · medium pets confirmed · 12-mo</td>
+        </tr>
+        <tr data-avail="1">
+          <td></td>
+          <td><a href="https://www.apartments.com/84-east-ave-austin-tx-unit-1401/28fnm39/" target="_blank">84 East Ave #1401</a><br><small>Vesper · 78701</small></td>
+          <td>Condo</td><td>2BR/2BA</td>
+          <td class="price-tag">$4,850 <span class="price-drop">$4,940</span></td>
+          <td><span class="pill pg">Active</span></td>
+          <td>1,293 sqft</td>
+          <td>Price dropped $90 · <span class="pill pb">6 wks free</span> · balcony · cats+dogs</td>
+        </tr>
+        <tr data-avail="1">
+          <td></td>
+          <td><a href="https://www.apartments.com/210-lee-barton-dr-austin-tx-unit-517/qs1hpxz/" target="_blank">210 Lee Barton Dr #517</a><br><small>78704 (Zilker adj.)</small></td>
+          <td>Condo</td><td>2BR/2BA</td>
+          <td class="price-tag">$4,500</td>
+          <td><span class="pill pg">Active</span></td>
+          <td>1,369 sqft</td>
+          <td>Cats+dogs OK · 12-mo · no pool</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DISTRICT 2: WESTLAKE HILLS / LOST CREEK -->
+  <div class="zone" data-zone="2">
+    <h2>District 2 — Westlake Hills / Lost Creek <span class="sub">78746 · $3,000–$4,500/mo · Houses · 3BR+ · Yard required · Eanes ISD area</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/mo</th><th>Status</th><th>Sqft</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1" data-pool="1" data-pick="1">
+          <td><span class="star">⭐ PICK</span></td>
+          <td><a href="https://www.zillow.com/homedetails/208-Westhaven-Dr-West-Lake-Hills-TX-78746/29332612_zpid/" target="_blank">208 Westhaven Dr</a><br><small>West Lake Hills</small></td>
+          <td>House</td><td>3BR/2.5BA</td>
+          <td class="price-tag">$4,275</td>
+          <td><span class="pill pg">Active</span></td>
+          <td>2,448 sqft</td>
+          <td>🏊 Private pool · all pets · Eanes ISD · 1-yr lease</td>
+        </tr>
+        <tr class="off-market">
+          <td></td>
+          <td><a href="https://www.zillow.com/homedetails/100-McConnell-Dr-Austin-TX-78746/29332654_zpid/" target="_blank">100 McConnell Dr</a><br><small>78746</small></td>
+          <td>House</td><td>3BR/3BA</td>
+          <td>$3,995</td>
+          <td><span class="pill pgr">Off Market</span></td>
+          <td>1,600 sqft</td>
+          <td>Off market since 6/3/2026 — not re-listed as of June 26</td>
+        </tr>
+        <tr class="off-market">
+          <td></td>
+          <td><a href="https://www.zillow.com/homedetails/6305-Forest-Hills-Dr-Austin-TX-78746/29334388_zpid/" target="_blank">6305 Forest Hills Dr</a><br><small>78746</small></td>
+          <td>House</td><td>4BR/2BA</td>
+          <td>$3,500</td>
+          <td><span class="pill pgr">Off Market</span></td>
+          <td>1,608 sqft</td>
+          <td>Off market since 5/14/2026 — confirmed still off June 26</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DISTRICT 3: TARRYTOWN -->
+  <div class="zone" data-zone="3">
+    <h2>District 3 — Tarrytown <span class="sub">78703 · $3,000–$4,000/mo · Houses preferred · 3BR+ · Yard required</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/mo</th><th>Status</th><th>Sqft</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1">
+          <td></td>
+          <td><a href="https://www.zillow.com/homedetails/3206-Kerbey-Ln-Austin-TX-78703/29337765_zpid/" target="_blank">3206 Kerbey Ln</a><br><small>Tarrytown · 78703</small></td>
+          <td>House</td><td>3BR/2BA</td>
+          <td class="price-tag">$3,900 <span class="price-drop">$4,200</span></td>
+          <td><span class="pill pg">Active</span></td>
+          <td>1,330 sqft</td>
+          <td>Avail Jul 1 · fenced yard · <span class="pill py">⚠️ "cats, small dogs" listed — confirm lab OK</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DISTRICT 4: BARTON HILLS / ZILKER -->
+  <div class="zone" data-zone="4">
+    <h2>District 4 — Barton Hills / Zilker <span class="sub">78704 · $3,000–$4,000/mo · Houses or condos · 3BR+ · Yard required for houses</span></h2>
+    <table>
+      <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/mo</th><th>Status</th><th>Sqft</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr data-avail="1">
+          <td></td>
+          <td><a href="https://www.zillow.com/homedetails/129-Coleman-St-Austin-TX-78704/29478353_zpid/" target="_blank">129 Coleman St</a><br><small>78704</small></td>
+          <td>House</td><td>5BR/3BA</td>
+          <td class="price-tag">$3,200</td>
+          <td><span class="pill pg">Active</span></td>
+          <td>1,700 sqft</td>
+          <td>Pre-lease avail Aug 4 · <span class="pill py">⚠️ Zillow: "cats + small dogs" — confirm lab OK</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    🔍 Sources: <a href="https://www.zillow.com/austin-tx/" target="_blank">Zillow</a> ·
+    <a href="https://www.har.com/" target="_blank">HAR.com</a> ·
+    <a href="https://www.apartments.com/" target="_blank">Apartments.com</a> ·
+    <a href="https://www.homes.com/" target="_blank">Homes.com</a><br>
+    ⚠️ Pet policy for a medium black lab must be confirmed with each landlord — some listings only specify small dogs.<br>
+    🚫 Do not use realtor.com (causes errors). · Next scan: scheduled weekly via <code>austin-rental-scan</code>.
+  </div>
+</div>
+
+<script>
+const rows = document.querySelectorAll('tbody tr');
+const btns = document.querySelectorAll('#filters button');
+
+btns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    btns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.f;
+    rows.forEach(r => {
+      if (f === 'all') { r.classList.remove('hidden'); return; }
+      if (f === 'avail') { r.classList.toggle('hidden', !r.dataset.avail); return; }
+      if (f === 'pool') { r.classList.toggle('hidden', !r.dataset.pool); return; }
+      if (f === 'pick') { r.classList.toggle('hidden', !r.dataset.pick); return; }
+    });
+  });
+});
+</script>
+</body>
+</html>

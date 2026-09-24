@@ -1,0 +1,162 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Central Valley Rental Tracker",
+  "schemaVersion": 1,
+  "description": "Interactive tracker for the San José Central Valley (Escazú/Santa Ana/Heredia/Belén) long-term rental scan — 18 listings with pool/pet/new filters, outreach status panel, prices, and source links. Updated June 19, 2026."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central Valley Rental Tracker</title>
+<style>
+  :root { color-scheme: light;
+    --teal:#0e7c7b; --navy:#17314f; --sand:#f6f1e7; --green:#1f8a4c; --green-bg:#e3f5e8;
+    --red:#c0392b; --red-bg:#fbe6e3; --yellow:#9c7a00; --yellow-bg:#fff6da; --orange:#e67e22; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand);
+    color:#222; margin:0; padding:0 0 40px; line-height:1.5; }
+  header { background:linear-gradient(135deg,var(--navy),var(--teal)); color:#fff; padding:22px 24px; }
+  header h1 { margin:0 0 4px; font-size:1.35rem; }
+  header .meta { font-size:0.85rem; opacity:0.9; }
+  .wrap { padding:0 24px; max-width:1100px; margin:0 auto; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0; align-items:center; }
+  .controls button { border:1px solid #cfc7b2; background:#fff; color:var(--navy); border-radius:16px;
+    padding:6px 14px; font-size:0.82rem; cursor:pointer; font-weight:600; }
+  .controls button.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .summary { background:#fff; border-left:8px solid var(--red); border-radius:6px; padding:14px 18px; margin:18px 0;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .summary h2 { margin:0 0 6px; color:var(--red); font-size:1.1rem; }
+  .summary span.k { font-weight:700; color:var(--navy); }
+  .outreach-box { background:#fff; border:1px solid #ddd; border-radius:6px; padding:12px 16px; margin:16px 0; font-size:0.85rem; }
+  .outreach-box h3 { margin:0 0 8px; color:var(--navy); font-size:0.95rem; }
+  .status-row { display:flex; align-items:center; gap:8px; margin:5px 0; }
+  .sdot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .sdot.ready { background:#e67e22; }
+  .sdot.pending { background:var(--yellow); }
+  .sdot.sent { background:var(--green); }
+  .zone { margin:24px 0; }
+  .zone h2 { color:#fff; background:var(--navy); padding:9px 14px; border-radius:6px 6px 0 0; margin:0; font-size:1.05rem; }
+  .zone .sub { font-size:0.8rem; opacity:0.85; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #e2dccb; padding:9px; text-align:left; font-size:0.85rem; vertical-align:top; }
+  th { background:#eef3f2; color:var(--navy); font-size:0.74rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#fbfaf6; }
+  .pill { display:inline-block; padding:2px 9px; border-radius:12px; font-size:0.72rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); } .pr { background:var(--red-bg); color:var(--red); }
+  .py { background:var(--yellow-bg); color:var(--yellow); }
+  .badge { display:inline-block; background:var(--red); color:#fff; font-size:0.62rem; font-weight:700; padding:1px 6px;
+    border-radius:4px; margin-left:5px; vertical-align:middle; }
+  .star { display:inline-block; background:var(--orange); color:#fff; font-size:0.62rem; font-weight:700; padding:1px 6px;
+    border-radius:4px; margin-left:3px; vertical-align:middle; }
+  a { color:var(--teal); text-decoration:none; } a:hover { text-decoration:underline; }
+  .note { font-size:0.8rem; color:#777; margin-top:18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏞️ Central Valley Rental Tracker</h1>
+  <div class="meta">Escazú · Santa Ana · Heredia · Belén/Cariari — weekly Friday scan for Lars &amp; Kim</div>
+</header>
+<div class="wrap">
+  <div class="summary">
+    <h2>🆕 NEW THIS WEEK — June 19, 2026</h2>
+    <div><span class="k">5 new listings</span> via Costa Rica MLS (re.cr), all from Realty ONE Group CR (agent Sergio E. González, info@realtyonegroup.cr). <span class="k">2 top picks</span>: House in Santa Ana ($2,000/mo, pool + pets confirmed) + VILLAS DEL REY Escazú ($1,500/mo, 200m², best value). <span class="k">1 consolidated bilingual draft</span> covers both — ready to send. Total tracked: <span class="k">18 listings</span> across 4 zones.</div>
+  </div>
+
+  <div class="outreach-box">
+    <h3>📧 Outreach Status</h3>
+    <div class="status-row"><span class="sdot ready"></span><strong>READY TO SEND:</strong> Realty ONE Group CR (2 listings: Santa Ana RL1800033 + Villas del Rey RL1800164) → info@realtyonegroup.cr</div>
+    <div class="status-row"><span class="sdot pending"></span><strong>PENDING:</strong> Horizons Realty CR (Rincón de las Brisas, Heredia) → jbrat@horizonsrealtycr.com — draft from 06/12, not yet sent</div>
+    <div class="status-row"><span class="sdot pending"></span><strong>PENDING (form):</strong> Calahonda, Escazú → inmobiliaria.com contact form (self-addressed ⚠️ draft)</div>
+    <div class="status-row"><span class="sdot pending"></span><strong>PENDING (form):</strong> Condominio en Lindora → Encuentra24 #32170141 contact form (self-addressed ⚠️ draft)</div>
+  </div>
+
+  <div class="controls" id="filters">
+    <strong style="font-size:0.82rem;color:var(--navy)">Filter:</strong>
+    <button data-f="all" class="active">All (18)</button>
+    <button data-f="new">🆕 New this week</button>
+    <button data-f="pool">Pool ✓</button>
+    <button data-f="pet">Pet-friendly ✓</button>
+    <button data-f="escazu">Escazú</button>
+    <button data-f="santaana">Santa Ana</button>
+    <button data-f="heredia">Heredia</button>
+    <button data-f="belen">Belén/Cariari</button>
+  </div>
+  <div id="zones"></div>
+  <div class="note">Last updated: June 19, 2026 (week 2 of Central Valley scan). Full report: costa_rica_rentals_central_valley_06192026.html in the Costa Rica Relocation folder. 🟠 = ready to send · 🟡 = pending action · 🟢 = sent.</div>
+</div>
+<script>
+const data = [
+ {zone:"escazu", zlabel:"Zone 1 — Escazú", zsub:"San Rafael · Trejos Montealegre · Guachipelín — main expat hub",
+  rows:[
+   {n:"VILLAS DEL REY: House For Rent",a:"Escazú (200m², furnished, jacuzzi, 2 parking)",p:"$1,500",b:"3BR / 2BA",pool:"r",poolt:"Interior jacuzzi (no shared pool)",pet:"g",pett:"Pets OK ($0 dep.)",u:"https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800164",src:"re.cr RL1800164",nw:1,top:1},
+   {n:"Excellent Three Bedroom Condominium",a:"Escazú (170m², central AC)",p:"$2,950",b:"3BR / 1BA",pool:"g",poolt:"Community pool",pet:"g",pett:"Pets OK",u:"https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800158",src:"re.cr RL1800158",nw:1},
+   {n:"Beautiful Condominium",a:"Escazú (194m², central AC, garden view)",p:"$2,950",b:"3BR / 2BA",pool:"y",poolt:"Ask",pet:"g",pett:"Pets OK",u:"https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800157",src:"re.cr RL1800157",nw:1},
+   {n:"Apartment For Rent in Escazú",a:"Escazú (194m², mountain+greenbelt views, furnished)",p:"$3,450",b:"3BR / 1BA",pool:"g",poolt:"Community pool",pet:"g",pett:"Pets OK",u:"https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800197",src:"re.cr RL1800197",nw:1},
+   {n:"Casa en Condominio Calahonda",a:"San Rafael de Escazú",p:"$2,100",b:"3BR / 2.5BA",pool:"g",poolt:"Pool + rancho",pet:"g",pett:"Up to 2 pets",u:"https://costarica.inmobiliaria.com/escazu+trejos-montealegre/casas+alquiler/",src:"inmobiliaria.com",nw:0},
+   {n:"Casa Condominio con Piscina & Playground",a:"Escazú",p:"$2,700",b:"3BR",pool:"g",poolt:"Pool + playground",pet:"y",pett:"Ask",u:"https://www.domusverum.com/propiedades/casa-en-alquiler-trejos-montealegre/",src:"domusverum.com",nw:0},
+   {n:"Casa Semi-Amueblada, Trejos Montealegre",a:"Trejos Montealegre",p:"$2,500",b:"4BR / 174m²",pool:"y",poolt:"Ask",pet:"g",pett:"Pet-walkable (flat)",u:"https://www.encuentra24.com/costa-rica-es/bienes-raices-alquiler-apartamentos-amueblados/espectacular-casa-semi-amueblada-de-4-hab-en-trejos-montealegre-de-escazu/32155492",src:"Encuentra24 #32155492",nw:0},
+   {n:"Casa Trejos Montealegre (near Walmart/Ruta 27)",a:"Trejos Montealegre",p:"$1,750",b:"3BR / 200m²",pool:"r",poolt:"No pool listed",pet:"y",pett:"Ask",u:"https://anzahome.com/property/escazu-trejos-montealegre-se-alquila-amplia-casa-amueblada-2/",src:"anzahome.com",nw:0},
+   {n:"Casa en Alquiler, Trejos Montealegre",a:"Trejos Montealegre",p:"$2,100",b:"3BR",pool:"y",poolt:"Ask",pet:"y",pett:"Ask",u:"https://www.domusverum.com/propiedades/casa-en-alquiler-trejos-montealegre/",src:"domusverum.com",nw:0}
+  ]},
+ {zone:"santaana", zlabel:"Zone 2 — Santa Ana", zsub:"Lindora · Pozos · Piedades — newer condos, drier microclimate",
+  rows:[
+   {n:"House For Rent in Santa Ana",a:"Santa Ana (169m², furnished, 2-story, AC, cable internet)",p:"$2,000",b:"3BR / 3BA",pool:"g",poolt:"Community pool",pet:"g",pett:"Pets OK ($0 dep.)",u:"https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800033",src:"re.cr RL1800033",nw:1,top:1},
+   {n:"Condominio en Lindora",a:"Lindora, Santa Ana",p:"$1,450",b:"3BR",pool:"g",poolt:"Pool + clubhouse",pet:"y",pett:"Ask",u:"https://www.encuentra24.com/costa-rica-en/real-estate-for-rent-houses/condominio-en-lindora-santa-ana/32170141",src:"Encuentra24 #32170141",nw:0},
+   {n:"Casa en Pozos (190m²)",a:"Pozos, Santa Ana",p:"Inquire",b:"3BR / 190m²",pool:"g",poolt:"Semi-Olympic pool, jacuzzi, gym",pet:"y",pett:"Ask",u:"https://www.encuentra24.com/costa-rica-en/real-estate-for-rent-houses/san-jose-santa-ana",src:"Encuentra24",nw:0},
+   {n:"Coldwell Banker Santa Ana — portfolio",a:"Santa Ana / Lindora",p:"Varies",b:"2–3BR",pool:"y",poolt:"Varies",pet:"g",pett:"Pet-friendly options",u:"https://www.coldwellbankercostarica.com/real-estate/santa-ana-costa-rica/long-term-rental",src:"coldwellbankercostarica.com",nw:0}
+  ]},
+ {zone:"heredia", zlabel:"Zone 3 — Heredia", zsub:"San Pablo · San Rafael · San Francisco — cooler, greener, strong condo stock",
+  rows:[
+   {n:"Casa Condominio Rincón de las Brisas (nja1208)",a:"San Pablo de Heredia",p:"Inquire",b:"3BR",pool:"g",poolt:"Pool, clubhouse, gym, game room",pet:"g",pett:"Dedicated pet park",u:"https://www.horizonsrealtycr.com/property/se-alquila-casa-en-condominio-ricon-de-las-brisas-san-pablo-de-heredia-3-habitaciones-nja1208/",src:"Horizons Realty CR",nw:0},
+   {n:"Casa Condominio, Rincón de Ricardo",a:"San Pablo de Heredia",p:"Inquire",b:"3BR",pool:"g",poolt:"Pool, co-working, gym",pet:"g",pett:"Dog park",u:"https://www.encuentra24.com/costa-rica-es/bienes-raices-alquiler-casas/heredia-provincia",src:"Encuentra24",nw:0},
+   {n:"Villas San Rafael de Heredia",a:"San Rafael de Heredia",p:"from $1,400",b:"2–3BR",pool:"y",poolt:"Ask",pet:"y",pett:"Ask",u:"https://www.casas24.com/costa-rica-en/residential-properties-houses-to-rent/heredia-san-rafael",src:"casas24.com",nw:0}
+  ]},
+ {zone:"belen", zlabel:"Zone 4 — Belén & Cariari", zsub:"La Ribera · Cariari — gated golf community, near Intel/Forum, airport-close",
+  rows:[
+   {n:"Family Townhouse, La Ribera de Belén",a:"La Ribera de Belén",p:"Inquire",b:"2–3BR townhouse",pool:"g",poolt:"2 shared pools + playground",pet:"y",pett:"Ask",u:"https://www.propertiesincostarica.com/cariari_and_belen.html",src:"propertiesincostarica.com",nw:0},
+   {n:"Cariari Golf Community homes",a:"Cariari",p:"Inquire",b:"3BR+",pool:"y",poolt:"Varies by home",pet:"y",pett:"Ask",u:"https://www.propertiesincostarica.com/cariari_and_belen.html",src:"propertiesincostarica.com",nw:0}
+  ]}
+];
+const pillCls={g:"pg",y:"py",r:"pr"};
+let filter="all";
+function show(row){
+  if(filter==="all") return true;
+  if(filter==="new") return row.nw===1;
+  if(filter==="pool") return row.pool==="g";
+  if(filter==="pet") return row.pet==="g";
+  return true;
+}
+function render(){
+  const c=document.getElementById("zones"); c.innerHTML="";
+  const zoneFilters=["escazu","santaana","heredia","belen"];
+  data.forEach(z=>{
+    if(zoneFilters.includes(filter) && filter!==z.zone) return;
+    const rows=z.rows.filter(r=>show(r));
+    if(rows.length===0)return;
+    let h=`<div class="zone"><h2>${z.zlabel}<span class="sub">${z.zsub}</span></h2><table><thead><tr><th>Listing</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Source</th></tr></thead><tbody>`;
+    rows.forEach(r=>{
+      const topBadge = r.top ? `<span class="star">⭐ TOP PICK</span>` : '';
+      h+=`<tr><td>${r.n}${r.nw?'<span class="badge">NEW</span>':''}${topBadge}</td><td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+         `<td><span class="pill ${pillCls[r.pool]}">${r.poolt}</span></td>`+
+         `<td><span class="pill ${pillCls[r.pet]}">${r.pett}</span></td>`+
+         `<td><a href="${r.u}" target="_blank" rel="noopener">${r.src}</a></td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+    c.insertAdjacentHTML("beforeend",h);
+  });
+}
+document.getElementById("filters").addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  filter=e.target.dataset.f;
+  try{localStorage.setItem("cvFilter",filter);}catch(_){}
+  [...document.querySelectorAll("#filters button")].forEach(b=>b.classList.toggle("active",b===e.target));
+  render();
+});
+try{const s=localStorage.getItem("cvFilter"); if(s){filter=s; const b=document.querySelector(`#filters button[data-f="${s}"]`); if(b){[...document.querySelectorAll("#filters button")].forEach(x=>x.classList.remove("active")); b.classList.add("active");}}}catch(_){}
+render();
+</script>
+</body>
+</html>

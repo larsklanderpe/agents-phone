@@ -1,0 +1,1035 @@
+<!DOCTYPE html><script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Relocation Tracker",
+  "schemaVersion": 1,
+  "description": "Unified relocation tracker — Costa Rica (4 sub-locales), Sydney (6 zones, June 26 2026, 194 listings), Austin (4 districts, June 26 2026). Horizontal sub-nav design. Auto-refreshes every 60 min."
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relocation Tracker — Lars &amp; Kim</title>
+<style>
+  :root { color-scheme: light;
+    --teal:#0e7c7b; --navy:#17314f; --sand:#f6f1e7;
+    --green:#1f8a4c; --green-bg:#e3f5e8;
+    --red:#c0392b; --red-bg:#fbe6e3;
+    --yellow:#9c7a00; --yellow-bg:#fff6da;
+    --orange:#e67e22; --purple:#7b5ea7;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif; background:var(--sand); color:#222; line-height:1.5; font-size:14px; min-height:100vh; display:flex; flex-direction:column; }
+
+  /* ── Destination top bar ── */
+  .dest-bar { background:var(--navy); display:flex; align-items:stretch; padding:0 0 0 16px; flex-shrink:0; }
+  .dest-bar .logo { color:#fff; font-size:0.9rem; font-weight:700; opacity:0.7; display:flex; align-items:center; padding-right:20px; white-space:nowrap; letter-spacing:0.02em; }
+  .dest-btn { background:none; border:none; color:rgba(255,255,255,0.65); font-size:0.88rem; font-weight:600; padding:14px 22px; cursor:pointer; border-bottom:3px solid transparent; transition:all 0.15s; white-space:nowrap; }
+  .dest-btn:hover { color:#fff; background:rgba(255,255,255,0.07); }
+  .dest-btn.active { color:#fff; border-bottom-color:var(--teal); background:rgba(255,255,255,0.1); }
+
+  /* ── Sub-nav strip ── */
+  .sub-nav { background:#eee8d8; border-bottom:1px solid #cfc7b2; display:flex; flex-wrap:wrap; padding:6px 16px; gap:5px; flex-shrink:0; }
+  .sub-nav-btn { background:none; border:1px solid transparent; color:#555; padding:6px 14px; border-radius:16px; font-size:0.82rem; font-weight:500; cursor:pointer; line-height:1.2; transition:all 0.15s; white-space:nowrap; }
+  .sub-nav-btn:hover { background:#fff; border-color:#cfc7b2; color:var(--navy); }
+  .sub-nav-btn.active { background:var(--teal); color:#fff; font-weight:600; border-color:var(--teal); }
+  .sub-nav-btn .sub-meta { font-size:0.7rem; display:block; opacity:0.75; }
+  .sub-nav-btn.active .sub-meta { opacity:0.85; }
+  @media(max-width:600px){
+    .sub-nav { padding:5px 10px; gap:4px; }
+    .sub-nav-btn { padding:5px 10px; font-size:0.78rem; }
+  }
+
+  /* ── Content area ── */
+  .content { flex:1; overflow-y:auto; }
+  .locale-panel { display:none; }
+  .locale-panel.active { display:block; }
+
+  /* ── CR tracker content ── */
+  .tracker-wrap { padding:0 24px 40px; max-width:1100px; }
+  .tracker-header { background:linear-gradient(135deg,var(--navy),var(--teal)); color:#fff; padding:18px 24px; }
+  .tracker-header h1 { font-size:1.25rem; margin-bottom:3px; }
+  .tracker-header .meta { font-size:0.82rem; opacity:0.9; }
+  .new-banner { background:#fff; border-left:5px solid var(--red); border-radius:0 6px 6px 0; padding:11px 16px; margin:16px 0 0; font-size:0.84rem; }
+  .new-banner strong { color:var(--red); }
+  .new-banner ul { padding-left:18px; margin-top:5px; }
+  .new-banner li { margin-bottom:3px; }
+  .summary { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
+  .stat { background:#fff; border:1px solid #ddd7c4; border-radius:8px; padding:8px 14px; text-align:center; min-width:90px; }
+  .stat .n { font-size:1.5rem; font-weight:700; color:var(--navy); line-height:1.1; }
+  .stat .lbl { font-size:0.66rem; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; align-items:center; }
+  .controls strong { font-size:0.82rem; color:var(--navy); }
+  .ctrl-btn { border:1px solid #cfc7b2; background:#fff; color:var(--navy); border-radius:16px; padding:5px 13px; font-size:0.79rem; cursor:pointer; font-weight:600; }
+  .ctrl-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .zone { margin:20px 0; }
+  .zone h2 { color:#fff; background:var(--navy); padding:9px 14px; border-radius:6px 6px 0 0; font-size:1rem; }
+  .zone h2 .sub { font-size:0.77rem; opacity:0.85; font-weight:normal; display:block; }
+  table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  th,td { border:1px solid #e2dccb; padding:8px 9px; text-align:left; font-size:0.83rem; vertical-align:top; }
+  th { background:#eef3f2; color:var(--navy); font-size:0.71rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:nth-child(even) td { background:#fbfaf6; }
+  tr.deposit td { opacity:0.45; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:11px; font-size:0.69rem; font-weight:600; white-space:nowrap; }
+  .pg { background:var(--green-bg); color:var(--green); }
+  .pr { background:var(--red-bg); color:var(--red); }
+  .py { background:var(--yellow-bg); color:var(--yellow); }
+  .badge { display:inline-block; background:var(--red); color:#fff; font-size:0.59rem; font-weight:700; padding:1px 5px; border-radius:4px; margin-left:4px; vertical-align:middle; }
+  .drafted-badge { display:inline-block; background:var(--teal); color:#fff; font-size:0.59rem; font-weight:700; padding:1px 5px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  .star-badge { display:inline-block; background:var(--orange); color:#fff; font-size:0.59rem; font-weight:700; padding:1px 5px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  .drop-badge { display:inline-block; background:#10b981; color:#fff; font-size:0.59rem; font-weight:700; padding:1px 5px; border-radius:4px; margin-left:3px; vertical-align:middle; }
+  a { color:var(--teal); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .outreach-box { background:#fff; border:1px solid #ddd; border-left:5px solid var(--teal); border-radius:0 6px 6px 0; padding:12px 16px; margin:18px 0; font-size:0.84rem; }
+  .outreach-box h3 { margin-bottom:8px; color:var(--navy); font-size:0.91rem; }
+  .outreach-item { margin:6px 0; padding:5px 10px; border-radius:4px; }
+  .outreach-item.ready { background:#e3f5e8; }
+  .outreach-item.new-draft { background:#e8f0fe; }
+  .outreach-item.pending { background:#fff6da; }
+  .outreach-item.waiting { background:#f8f9fa; }
+  .removed-box { background:#f8f9fa; border:1px solid #ddd; border-radius:4px; padding:8px 12px; margin-top:14px; font-size:0.79rem; color:#666; }
+  .note { font-size:0.77rem; color:#777; margin-top:16px; padding-bottom:20px; }
+
+  /* ── Sydney-specific ── */
+  .alert-box { background:#fee2e2; border:2px solid #ef4444; border-radius:8px; padding:12px 16px; margin:14px 0; font-size:0.84rem; }
+  .alert-box strong { color:#b91c1c; }
+  .price-drop-box { background:#ecfdf5; border:2px solid #10b981; border-radius:8px; padding:12px 16px; margin:14px 0; font-size:0.84rem; }
+  .price-drop-box strong { color:#065f46; }
+  .top-picks-box { background:#fffbeb; border:2px solid #f59e0b; border-radius:8px; padding:14px 18px; margin:14px 0; }
+  .top-picks-box h3 { color:#92400e; font-size:0.95rem; margin-bottom:10px; }
+  .picks-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+  .pick-card { background:#fff; border:1px solid #fde68a; border-radius:6px; padding:10px 12px; }
+  .pick-card .addr { font-weight:700; font-size:0.84rem; color:#1f2937; }
+  .pick-card .ztag { font-size:0.73rem; color:#888; margin:2px 0; }
+  .pick-card .price { font-size:1rem; font-weight:800; color:var(--green); }
+  .pick-card .why { font-size:0.73rem; color:#374151; margin-top:4px; font-style:italic; }
+  .hidden { display:none !important; }
+
+  /* ── Sydney header style ── */
+  .sydney-header { background:linear-gradient(135deg,#0c4a6e,#0369a1); color:#fff; padding:18px 24px; }
+  .sydney-header h1 { font-size:1.25rem; margin-bottom:3px; }
+  .sydney-header .meta { font-size:0.82rem; opacity:0.9; }
+  .syd-zone h2 { color:#fff; background:#0c4a6e; padding:9px 14px; border-radius:6px 6px 0 0; font-size:1rem; }
+  .syd-zone h2 .sub { font-size:0.77rem; opacity:0.85; font-weight:normal; display:block; }
+  .syd-zone table th { background:#eef3f8; color:#0c4a6e; }
+  .syd-zone { margin:20px 0; }
+  .syd-stat .n { color:#0369a1; }
+</style>
+</head>
+<body>
+
+<!-- ── Destination top bar ── -->
+<div class="dest-bar">
+  <div class="logo">Lars &amp; Kim · Relocation</div>
+  <button class="dest-btn active" data-dest="cr">&#127796; Costa Rica</button>
+  <button class="dest-btn" data-dest="sydney">&#127466;&#127462; Sydney</button>
+  <button class="dest-btn" data-dest="austin">&#127774; Austin</button>
+</div>
+
+<!-- ── Sub-nav strip (populated by JS) ── -->
+<nav class="sub-nav" id="sub-nav"></nav>
+
+<!-- ── Content panels ── -->
+<div class="content">
+
+    <!-- ═══════════════════════════════ SOUTH PACIFIC ═══════════════════════════════ -->
+    <div class="locale-panel active" id="panel-cr-south-pacific">
+      <div class="tracker-header">
+        <h1>&#127754; South Pacific</h1>
+        <div class="meta">Dominical &middot; Escaleras &middot; Uvita &middot; Bah&iacute;a Ballena &middot; Ojochal &mdash; weekly Friday scan &middot; Last updated: <strong>June 19, 2026</strong></div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner">
+          <strong>&#128226; NEW THIS WEEK (June 19):</strong> Tropical Villa Ojochal (Starlink + saltwater pool &#11088;) &middot; Villa Eco del Rio Uvita (pets confirmed) &middot; Villa Jubilo Ojochal (200 Mbps) &middot; Casa en el Cielo (3BR/4BA pool) &middot; Casa Quetzal &#11014; upgraded (pets + fiber now confirmed).
+        </div>
+        <div class="summary">
+          <div class="stat"><div class="n">21</div><div class="lbl">Listings</div></div>
+          <div class="stat"><div class="n">11</div><div class="lbl">Strong Matches</div></div>
+          <div class="stat"><div class="n">4</div><div class="lbl">New This Week</div></div>
+          <div class="stat"><div class="n">11</div><div class="lbl">Drafts Created</div></div>
+        </div>
+        <div class="controls" id="sp-filters">
+          <strong>Filter:</strong>
+          <button class="ctrl-btn active" data-f="all">All</button>
+          <button class="ctrl-btn" data-f="pool">Pool &#10003;</button>
+          <button class="ctrl-btn" data-f="strong">Strong matches</button>
+          <button class="ctrl-btn" data-f="new">New this week</button>
+        </div>
+        <div id="sp-zones"></div>
+        <div class="outreach-box">
+          <h3>&#9993;&#65039; Outreach Status (11 drafts, none sent yet)</h3>
+          <strong>June 19 &mdash; NEW drafts (4):</strong> Osa Property Management &rarr; Villa Eco del Rio + Villa Jubilo (consolidated to info@osapropertymanagement.com) &middot; Tropical Villa Ojochal (Airbnb &mdash; self-addressed) &middot; Casa en el Cielo (Airbnb &mdash; self-addressed) &middot; Casa Quetzal (contact form &mdash; self-addressed).<br><br>
+          <strong>June 11 &mdash; Awaiting send (7):</strong> Ocean &amp; Sunset View + Casita &rarr; Joshua Kanter, WhatsApp +506 8703-1130 &middot; 2BR+Office+Pool (Ojochal) &rarr; Kathia Araya, WhatsApp +506 7011-8399 &middot; Villa Mountain Serenity, Casa de los Sue&ntilde;os, Casa Futura, Casa Fishplanx, Estilo de Vida &rarr; Costa Ballena Management (costaballenamanagement@yahoo.com).
+        </div>
+        <div class="note">Snapshot of the June 11&ndash;19, 2026 scans. Full HTML report (costa_rica_rentals_south_pacific_06192026.html) and contacts_log.json in the Costa Rica Relocation project folder.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ NICOYA ═══════════════════════════════ -->
+    <div class="locale-panel" id="panel-cr-nicoya">
+      <div class="tracker-header">
+        <h1>&#127958;&#65039; Nicoya Peninsula</h1>
+        <div class="meta">Nosara (Guiones &middot; Pelada &middot; Garza) + S&aacute;mara/Carrillo &mdash; weekly Friday scan &middot; Last updated: <strong>June 26, 2026</strong></div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner">
+          <strong>&#128226; NEW THIS WEEK (June 26):</strong> 18 new Airbnb listings found across Nosara and S&aacute;mara/Carrillo.
+          <ul>
+            <li>&#11088; <strong>Jungle Tree House + Casita</strong> (Playa Pelada) &mdash; 3BR/3BA, private pool, canopy ocean views, $3,577/mo. Superhost 13 yrs. Draft ready.</li>
+            <li>&#11088; <strong>Casa Pomelo</strong> (S&aacute;mara) &mdash; 3BR/2.5BA, pool, 5.0&#9733; (11 reviews). Draft ready.</li>
+            <li>&#11088; <strong>Casa Luna + Casa Sol</strong> (S&aacute;mara, host Alfredo) &mdash; Casa Luna $4,108/mo confirmed. Pool + seaview. Both drafted.</li>
+            <li>&#11088; <strong>Casa Tarantella + The Samara Nest + Amazing Ocean View Villa</strong> &mdash; 87&ndash;158 reviews. Batch draft ready.</li>
+            <li><strong>Casa Mirella + Casa Odessa + Private Dual Villas</strong> (Nosara) &mdash; solid specs, drafts ready.</li>
+            <li><strong>Removed:</strong> Casa Guapa, Jungle River Villa + ecotourism guayacanes, Container Home, Sun &amp; Moon, Casa Congo, Casa Rosales, Casa Bejuco &mdash; not returned in current search.</li>
+          </ul>
+        </div>
+        <div class="summary">
+          <div class="stat"><div class="n" id="nic-total">36</div><div class="lbl">Listings</div></div>
+          <div class="stat"><div class="n">18</div><div class="lbl">New This Week</div></div>
+          <div class="stat"><div class="n">6</div><div class="lbl">New Drafts</div></div>
+          <div class="stat"><div class="n">10</div><div class="lbl">Total Outreach</div></div>
+        </div>
+        <div class="controls" id="nic-filters">
+          <strong>Filter:</strong>
+          <button class="ctrl-btn active" data-f="all">All</button>
+          <button class="ctrl-btn" data-f="pool">Pool &#10003;</button>
+          <button class="ctrl-btn" data-f="pet">Pets &#10003;</button>
+          <button class="ctrl-btn" data-f="new">New this week</button>
+          <button class="ctrl-btn" data-f="drafted">Outreach drafted</button>
+        </div>
+        <div id="nic-zones"></div>
+        <div class="outreach-box">
+          <h3>&#9993;&#65039; Outreach Status &mdash; June 26, 2026</h3>
+          <div class="outreach-item new-draft">&#128235; <strong>NEW 06-26:</strong> Jungle Tree House + Casita &rarr; Airbnb (draft r1238951221735904380)</div>
+          <div class="outreach-item new-draft">&#128235; <strong>NEW 06-26:</strong> Casa Odessa &rarr; Airbnb (draft r9038094877846242623)</div>
+          <div class="outreach-item new-draft">&#128235; <strong>NEW 06-26:</strong> Casa Mirella &rarr; Airbnb (draft r-5766434499489404774)</div>
+          <div class="outreach-item new-draft">&#128235; <strong>NEW 06-26:</strong> Casa Pomelo &rarr; Airbnb (draft r8994025251317515507)</div>
+          <div class="outreach-item new-draft">&#128235; <strong>NEW 06-26:</strong> Private Dual Villas &rarr; Airbnb (draft r-7122971710268849883)</div>
+          <div class="outreach-item new-draft">&#128235; <strong>NEW 06-26:</strong> S&aacute;mara batch (Casa Luna+Sol, Tarantella, Samara Nest, Amazing Ocean View) &rarr; Airbnb (draft r110292489828449451)</div>
+          <div class="outreach-item ready">&#9989; <strong>READY TO SEND:</strong> Vacation Nosara (7 properties) &rarr; reservations@vacationnosara.com (draft r221854163974400612) [06-19]</div>
+          <div class="outreach-item ready">&#9989; <strong>READY TO SEND:</strong> Rent Nosara (Casa Estrellas + Casa Dos Cocos) &rarr; info@rentnosara.com (draft r-7175475303642038667) [06-19]</div>
+          <div class="outreach-item ready">&#9888;&#65039; <strong>READY &mdash; PASTE TO WHATSAPP:</strong> Alba Reservations +506 8817-6555 (Villa Huitzilin + Jungle Houses A&amp;B + Casa Rinc&oacute;n + Casa Bellevue) [06-19]</div>
+          <div class="outreach-item waiting">&#128336; <strong>WAITING (06-12, unconfirmed):</strong> Mango Property Mgmt &rarr; mpmnosararentals@gmail.com (VRBO #208021 Private Beach House)</div>
+          <div class="outreach-item pending">&#9203; <strong>PENDING (Airbnb 06-12):</strong> house savana + Sunset Surf &mdash; drafts ready. (Casa Guapa + Jungle River Villa removed.)</div>
+        </div>
+        <div class="removed-box">&#128465;&#65039; <strong>Removed since June 19:</strong> Casa Guapa &middot; Jungle River Villa &middot; ecotourism guayacanes &middot; New 3BR Container Home &middot; The Sun and the Moon &middot; Casa Congo &middot; Casa Rosales &middot; Casa Bejuco &mdash; none returned in current search.</div>
+        <div class="note">Snapshot of the June 26, 2026 scan. Refreshed weekly. Full report (costa_rica_rentals_nicoya_06262026.html) in the Costa Rica Relocation project folder.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ NORTE GUANACASTE ═══════════════════════════════ -->
+    <div class="locale-panel" id="panel-cr-norte-guanacaste">
+      <div class="tracker-header">
+        <h1>&#128034; Norte Guanacaste</h1>
+        <div class="meta">Playa Domingo &rarr; Avellanas/Negra &rarr; Tamarindo/Villareal &rarr; Playa Grande &rarr; Flamingo/Potrero &mdash; weekly Friday scan &middot; Last updated: <strong>June 12, 2026</strong></div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="summary">
+          <div class="stat"><div class="n">9</div><div class="lbl">Listings</div></div>
+          <div class="stat"><div class="n">4</div><div class="lbl">Strong Matches</div></div>
+          <div class="stat"><div class="n">9</div><div class="lbl">New This Week</div></div>
+          <div class="stat"><div class="n">4</div><div class="lbl">Emails Drafted</div></div>
+        </div>
+        <div class="controls" id="ng-filters">
+          <strong>Filter:</strong>
+          <button class="ctrl-btn active" data-f="all">All</button>
+          <button class="ctrl-btn" data-f="pool">Pool &#10003;</button>
+          <button class="ctrl-btn" data-f="strong">Strong matches</button>
+        </div>
+        <div id="ng-zones"></div>
+        <div class="outreach-box">
+          <h3>&#9993;&#65039; Outreach drafted (4, not sent)</h3>
+          Casa Tigre + Riviera Casa 5 &rarr; Flamingo Costa Rica, WhatsApp +1-941-951-6222 &middot; Buda House + Pacific Residences #13 &rarr; Hidden Coast Realty, info@hiddencoastrealty.com &middot; 3BR Beach House Playa Grande &rarr; 1st Choice Realty &middot; Rent Avellanas Portfolio.
+        </div>
+        <div class="note">Snapshot of the June 12, 2026 scan. Southern anchor Playa Domingo (~2 hr from LIR) not yet covered. Refreshed weekly.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ CENTRAL VALLEY ═══════════════════════════════ -->
+    <div class="locale-panel" id="panel-cr-central-valley">
+      <div class="tracker-header">
+        <h1>&#127968; Central Valley</h1>
+        <div class="meta">Escaz&uacute; &middot; Santa Ana &middot; Heredia &middot; Bel&eacute;n/Cariari &mdash; weekly Friday scan &middot; Last updated: <strong>June 19, 2026</strong></div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner">
+          <strong>&#128226; NEW THIS WEEK &mdash; June 19, 2026</strong><br>
+          5 new listings via Costa Rica MLS (re.cr). <strong>2 top picks:</strong> House in Santa Ana ($2,000/mo, pool + pets) + VILLAS DEL REY Escaz&uacute; ($1,500/mo, 200m&sup2;, best value). 1 consolidated bilingual draft ready to send. Total: 18 listings across 4 zones.
+        </div>
+        <div class="outreach-box" style="margin-top:14px;">
+          <h3>&#128140; Outreach Status</h3>
+          <div class="outreach-item ready">&#128992; <strong>READY TO SEND:</strong> Realty ONE Group CR (Santa Ana RL1800033 + Villas del Rey RL1800164) &rarr; info@realtyonegroup.cr</div>
+          <div class="outreach-item pending">&#128993; <strong>PENDING:</strong> Horizons Realty CR (Rinc&oacute;n de las Brisas, Heredia) &rarr; jbrat@horizonsrealtycr.com &mdash; draft from 06/12</div>
+          <div class="outreach-item pending">&#128993; <strong>PENDING (form):</strong> Calahonda, Escaz&uacute; &rarr; inmobiliaria.com contact form</div>
+          <div class="outreach-item pending">&#128993; <strong>PENDING (form):</strong> Condominio en Lindora &rarr; Encuentra24 #32170141</div>
+        </div>
+        <div class="controls" id="cv-filters" style="margin-top:12px;">
+          <strong>Filter:</strong>
+          <button class="ctrl-btn active" data-f="all">All (18)</button>
+          <button class="ctrl-btn" data-f="new">&#128226; New this week</button>
+          <button class="ctrl-btn" data-f="pool">Pool &#10003;</button>
+          <button class="ctrl-btn" data-f="pet">Pet-friendly &#10003;</button>
+          <button class="ctrl-btn" data-f="escazu">Escaz&uacute;</button>
+          <button class="ctrl-btn" data-f="santaana">Santa Ana</button>
+          <button class="ctrl-btn" data-f="heredia">Heredia</button>
+          <button class="ctrl-btn" data-f="belen">Bel&eacute;n/Cariari</button>
+        </div>
+        <div id="cv-zones"></div>
+        <div class="note">Last updated: June 19, 2026. Full report: costa_rica_rentals_central_valley_06192026.html in the Costa Rica Relocation folder.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ SYDNEY ═══════════════════════════════ -->
+    <div class="locale-panel" id="panel-sydney-eastern-beaches">
+      <div class="sydney-header">
+        <h1>&#127944; Eastern Beaches</h1>
+        <div class="meta">Bondi &middot; Bronte &middot; Maroubra &middot; Kensington &middot; Paddington &middot; Surry Hills &middot; Alexandria &middot; Randwick &mdash; Scan #3, June 26, 2026</div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="alert-box"><strong>&#9888;&#65039; Gone since last scan:</strong> 3 Woodside Grove, Forestville &mdash; likely leased.</div>
+        <div class="price-drop-box"><strong>&#128154; Price drops:</strong> 84 Cottenham Ave Kensington $1,350&rarr;<strong>$1,250</strong> &middot; 14 Roscoe St Bondi Beach $1,500&rarr;<strong>$1,350</strong> &middot; 134 Reservoir St Surry Hills $1,500&rarr;<strong>$1,400</strong></div>
+        <div class="summary">
+          <div class="stat syd-stat"><div class="n">16</div><div class="lbl">Listings</div></div>
+          <div class="stat syd-stat"><div class="n">6</div><div class="lbl">New this week</div></div>
+          <div class="stat syd-stat"><div class="n">3</div><div class="lbl">Price drops</div></div>
+        </div>
+        <div class="syd-zone zone">
+          <h2>Eastern Beaches &amp; Inner East <span class="sub">Bondi &middot; Bondi Junction &middot; Maroubra &middot; Kensington &middot; Randwick &middot; Alexandria &middot; Surry Hills &middot; Paddington</span></h2>
+          <table>
+            <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/28-mons-avenue-maroubra-nsw-2035-18182439" target="_blank">28 Mons Avenue</a><br><small>Maroubra</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,295</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td><span class="star-badge">&#11088;</span><span class="drop-badge">&#8595;$100</span></td><td><a href="https://www.domain.com.au/84-cottenham-avenue-kensington-nsw-2033-18163929" target="_blank">84 Cottenham Avenue</a><br><small>Kensington</small></td><td>Semi</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; Was $1,350</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/7-cascade-street-paddington-nsw-2021-18177422" target="_blank">7 Cascade Street</a><br><small>Paddington</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,325</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td><span class="badge">NEW</span><span class="star-badge">&#11088;</span></td><td><a href="https://www.domain.com.au/52-rainford-street-surry-hills-nsw-2010-18184460" target="_blank">52 Rainford Street</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; Insp 26/6 1:30pm</td></tr>
+              <tr><td><span class="star-badge">&#11088;</span><span class="drop-badge">&#8595;$150</span></td><td><a href="https://www.domain.com.au/14-roscoe-street-bondi-beach-nsw-2026-18173722" target="_blank">14 Roscoe Street</a><br><small>Bondi Beach</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; Was $1,500</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/206-crown-street-darlinghurst-nsw-2010-18183044" target="_blank">206 Crown Street</a><br><small>Darlinghurst</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp 26/6 1:30pm</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/107-greens-road-paddington-nsw-2021-15902443" target="_blank">107 Greens Road</a><br><small>Paddington</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp 26/6 9:35am</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/35-hollywood-avenue-bondi-junction-nsw-2022-18179179" target="_blank">35 Hollywood Avenue</a><br><small>Bondi Junction</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td><span class="drop-badge">&#8595;$100</span></td><td><a href="https://www.domain.com.au/134-reservoir-street-surry-hills-nsw-2010-15972972" target="_blank">134 Reservoir Street</a><br><small>Surry Hills</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Was $1,500</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/89-arthur-street-surry-hills-nsw-2010-15897526" target="_blank">89 Arthur Street</a><br><small>Surry Hills</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,450</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/33-queen-street-randwick-nsw-2031-18177661" target="_blank">33 Queen Street</a><br><small>Randwick</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/76-suttor-street-alexandria-nsw-2015-16839177" target="_blank">76 Suttor Street</a><br><small>Alexandria</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,575</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/1122-anzac-pde-maroubra-nsw-2035-18171878" target="_blank">1122 Anzac Parade</a><br><small>Maroubra</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,600</strong></td><td><span class="pill pg">Available</span></td><td>645m&sup2; &middot; 6 parking</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/28-caledonia-street-paddington-nsw-2021-18182623" target="_blank">28 Caledonia Street</a><br><small>Paddington</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,650</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/116-wallis-street-woollahra-nsw-2025-18170177" target="_blank">116 Wallis Street</a><br><small>Woollahra</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,650</strong></td><td><span class="pill pg">Available</span></td><td>Insp 26/6 1:30pm</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/21-dudley-street-bondi-nsw-2026-15307872" target="_blank">21 Dudley Street</a><br><small>Bondi</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,750</strong></td><td><span class="pill pg">Available</span></td><td>Budget max</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">82 total domain.com.au listings in Eastern Suburbs with pets filter. Showing top results.</div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-sydney-northern-beaches">
+      <div class="sydney-header">
+        <h1>&#9961;&#65039; Northern Beaches</h1>
+        <div class="meta">Manly &middot; Dee Why &middot; Narrabeen &middot; Collaroy &middot; Newport &middot; Beacon Hill &middot; Seaforth &middot; Killarney Heights &middot; Warriewood &mdash; Scan #3, June 26, 2026</div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="alert-box"><strong>&#9888;&#65039; Gone since last scan:</strong> 46 Cumberland Ave, Collaroy ($1,395/wk) &mdash; likely leased. 27 Fairy Bower Rd Manly &mdash; deposit taken. 771 Barrenjoey Rd + 1/58 Avalon Pde Avalon &mdash; deposit taken.</div>
+        <div class="summary">
+          <div class="stat syd-stat"><div class="n">15</div><div class="lbl">Available</div></div>
+          <div class="stat syd-stat"><div class="n">8</div><div class="lbl">New this week</div></div>
+          <div class="stat syd-stat"><div class="n">3</div><div class="lbl">Deposit taken</div></div>
+        </div>
+        <div class="syd-zone zone">
+          <h2>Northern Beaches <span class="sub">Manly &middot; Dee Why &middot; Narrabeen &middot; Collaroy &middot; Newport &middot; Beacon Hill &middot; Seaforth &middot; Killarney Heights &middot; Warriewood &middot; Frenchs Forest &middot; Fairlight</span></h2>
+          <table>
+            <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/11-sydney-road-warriewood-nsw-2102-18186147" target="_blank">11 Sydney Road</a><br><small>Warriewood</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Budget floor</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/3-gertrude-street-beacon-hill-nsw-2100-18180100" target="_blank">3 Gertrude Street</a><br><small>Beacon Hill</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>2ba at floor price</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/56a-claudare-street-collaroy-plateau-nsw-2097-18178237" target="_blank">56a Claudare Street</a><br><small>Collaroy Plateau</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>2ba at floor</td></tr>
+              <tr><td><span class="star-badge">&#11088;</span></td><td><a href="https://www.domain.com.au/2-37-pine-avenue-narraweena-nsw-2099-18171488" target="_blank">2/37 Pine Avenue</a><br><small>Narraweena</small></td><td>Semi</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; 531m&sup2; &middot; 6 days listed</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/12-lockhart-place-belrose-nsw-2085-18135808" target="_blank">12 Lockhart Place</a><br><small>Belrose</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,295</strong></td><td><span class="pill pg">Available</span></td><td>708m&sup2; &middot; 3 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/37-wallumatta-road-newport-nsw-2106-18176247" target="_blank">37 Wallumatta Road</a><br><small>Newport</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,300</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/70-frenchs-forest-road-seaforth-nsw-2092-18160591" target="_blank">70 Frenchs Forest Rd</a><br><small>Seaforth</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/57-oceana-street-narraweena-nsw-2099-18184016" target="_blank">57 Oceana Street</a><br><small>Narraweena</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/1-goroka-place-beacon-hill-nsw-2100-18133559" target="_blank">1 Goroka Place</a><br><small>Beacon Hill</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>3 parking</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/2-inverness-avenue-frenchs-forest-nsw-2086-18185035" target="_blank">2 Inverness Avenue</a><br><small>Frenchs Forest</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,495</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/4-cavan-road-killarney-heights-nsw-2087-18131651" target="_blank">4 Cavan Road</a><br><small>Killarney Heights</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/27-tralee-avenue-killarney-heights-nsw-2087-18187296" target="_blank">27 Tralee Avenue</a><br><small>Killarney Heights</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/2-henry-street-dee-why-nsw-2099-17528095" target="_blank">2 Henry Street</a><br><small>Dee Why</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>Beach area</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/250-sydney-road-fairlight-nsw-2094-18108904" target="_blank">250 Sydney Road</a><br><small>Fairlight</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,550</strong></td><td><span class="pill pg">Available</span></td><td>Near Manly</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/121-lagoon-street-north-narrabeen-nsw-2101-18136552" target="_blank">121 Lagoon Street</a><br><small>North Narrabeen</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,600</strong></td><td><span class="pill pg">Available</span></td><td>390m&sup2; &middot; lagoon</td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/27-fairy-bower-road-manly-nsw-2095-18140206" target="_blank">27 Fairy Bower Road</a><br><small>Manly</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill py">Deposit Taken</span></td><td>Was top pick Jun 20</td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/771-barrenjoey-road-avalon-beach-nsw-2107-18167452" target="_blank">771 Barrenjoey Road</a><br><small>Avalon Beach</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,600</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/1-58-avalon-parade-avalon-beach-nsw-2107-18157090" target="_blank">1/58 Avalon Parade</a><br><small>Avalon Beach</small></td><td>Semi</td><td>3B/1ba</td><td><strong>$1,495</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">Next scan: Fri 3 Jul 2026 &middot; <a href="https://www.domain.com.au/rent/northern-beaches-nsw/house/3-bedrooms/?price=1250-1750&petsAllowed=1" target="_blank">See all on domain.com.au &rarr;</a></div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-sydney-central-coast">
+      <div class="sydney-header">
+        <h1>&#127965;&#65039; Central Coast</h1>
+        <div class="meta">Terrigal &middot; Avoca Beach &middot; Copacabana &middot; Wamberal &middot; North Avoca &middot; Saratoga &middot; Narara &mdash; Scan #3, June 26, 2026</div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner"><strong>&#128226; Value zone:</strong> Best price-to-space ratio in all 6 zones. 4BR+ houses from $1,000/wk. Tradeoff: ~1hr drive to Sydney CBD.</div>
+        <div class="summary">
+          <div class="stat syd-stat"><div class="n">9</div><div class="lbl">Listings</div></div>
+          <div class="stat syd-stat"><div class="n">4</div><div class="lbl">New this week</div></div>
+          <div class="stat syd-stat"><div class="n">$1,000</div><div class="lbl">Floor price</div></div>
+        </div>
+        <div class="syd-zone zone">
+          <h2>Central Coast <span class="sub">Terrigal &middot; Avoca Beach &middot; Copacabana &middot; Macmasters Beach &middot; North Avoca &middot; Wamberal &middot; Narara &middot; Saratoga &middot; Forresters Beach</span></h2>
+          <table>
+            <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/64-beachview-esplanade-macmasters-beach-nsw-2251-18177407" target="_blank">64 Beachview Esplanade</a><br><small>Macmasters Beach</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,000</strong></td><td><span class="pill pg">Available</span></td><td>Best value &middot; beach location</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/16-salisbury-drive-terrigal-nsw-2260-18181312" target="_blank">16 Salisbury Drive</a><br><small>Terrigal</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,000</strong></td><td><span class="pill pg">Available</span></td><td>Terrigal village</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/44-benwerrin-road-wamberal-nsw-2260-18155555" target="_blank">44 Benwerrin Road</a><br><small>Wamberal</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,000</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/92-oceano-st-copacabana-nsw-2251-18186192" target="_blank">92 Oceano Street</a><br><small>Copacabana</small></td><td>House</td><td>6B/2ba</td><td><strong>$1,075</strong></td><td><span class="pill pg">Available</span></td><td>6BR &mdash; office + spare rooms</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/15-beachcomber-parade-north-avoca-nsw-2260-18166928" target="_blank">15 Beachcomber Parade</a><br><small>North Avoca</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,050</strong></td><td><span class="pill pg">Available</span></td><td>506m&sup2; &middot; Avoca Beach</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/19-malumba-avenue-saratoga-nsw-2251-18122697" target="_blank">19 Malumba Avenue</a><br><small>Saratoga</small></td><td>House</td><td>4B/3ba</td><td><strong>$1,100</strong></td><td><span class="pill pg">Available</span></td><td>499m&sup2; &middot; exceptional value</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/103-cape-three-points-rd-avoca-beach-nsw-2251-18180349" target="_blank">103 Cape Three Points Rd</a><br><small>Avoca Beach</small></td><td>House</td><td>5B/3ba</td><td><strong>$1,150</strong></td><td><span class="pill pg">Available</span></td><td>5BR &mdash; office + rooms</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/14-tiarri-crescent-terrigal-nsw-2260-16538057" target="_blank">14 Tiarri Crescent</a><br><small>Terrigal</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,200</strong></td><td><span class="pill pg">Available</span></td><td>Terrigal beach village</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/7-blackwood-close-narara-nsw-2250-18170886" target="_blank">7 Blackwood Close</a><br><small>Narara</small></td><td>House</td><td>5B/3ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>5BR extreme value</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">18 total domain.com.au listings in Terrigal/CC with pets filter. <a href="https://www.domain.com.au/rent/terrigal-nsw-2260/house/?price=1000-1750&petsAllowed=1" target="_blank">See all &rarr;</a></div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-sydney-paddington">
+      <div class="sydney-header">
+        <h1>&#127981; Paddington / Surry Hills Terraces</h1>
+        <div class="meta">Paddington &middot; Surry Hills &middot; Darlinghurst &middot; Woollahra &middot; Centennial Park &middot; Redfern &mdash; Scan #3, June 26, 2026</div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner"><strong>&#128226; Terrace zone:</strong> Victorian terraces with courtyards &mdash; confirm outdoor space suitability for pets. Most listings don't specify &ldquo;pets allowed&rdquo; directly; enquire during inspection.</div>
+        <div class="summary">
+          <div class="stat syd-stat"><div class="n">8</div><div class="lbl">Available</div></div>
+          <div class="stat syd-stat"><div class="n">6</div><div class="lbl">New this week</div></div>
+          <div class="stat syd-stat"><div class="n">1</div><div class="lbl">Deposit taken</div></div>
+        </div>
+        <div class="syd-zone zone">
+          <h2>Paddington / Surry Hills / Darlinghurst <span class="sub">Paddington &middot; Surry Hills &middot; Darlinghurst &middot; Woollahra &middot; Centennial Park &middot; Redfern</span></h2>
+          <table>
+            <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge">NEW</span><span class="star-badge">&#11088;</span></td><td><a href="https://www.domain.com.au/52-rainford-street-surry-hills-nsw-2010-18184460" target="_blank">52 Rainford Street</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,350</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; Insp 26/6 1:30pm</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/206-crown-street-darlinghurst-nsw-2010-18183044" target="_blank">206 Crown Street</a><br><small>Darlinghurst</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp 26/6 1:30pm</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/107-greens-road-paddington-nsw-2021-15902443" target="_blank">107 Greens Road</a><br><small>Paddington</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>Insp 26/6 9:35am</td></tr>
+              <tr><td><span class="drop-badge">&#8595;$74</span></td><td><a href="https://www.domain.com.au/surry-hills-nsw-2010-17580835" target="_blank">Address on enquiry</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,420</strong></td><td><span class="pill pg">Available</span></td><td>Was $1,494</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/28-liverpool-street-paddington-nsw-2021-18188613" target="_blank">28 Liverpool Street</a><br><small>Paddington</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,485</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/10-stirling-street-redfern-nsw-2016-18183615" target="_blank">10 Stirling Street</a><br><small>Redfern</small></td><td>Terrace</td><td>3B/1ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/8-cook-road-centennial-park-nsw-2021-18188672" target="_blank">8 Cook Road</a><br><small>Centennial Park</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,535</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/116-wallis-street-woollahra-nsw-2025-18170177" target="_blank">116 Wallis Street</a><br><small>Woollahra</small></td><td>Terrace</td><td>3B/2ba</td><td><strong>$1,650</strong></td><td><span class="pill pg">Available</span></td><td>Insp 26/6 1:30pm</td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/376-bourke-street-surry-hills-nsw-2010-16532422" target="_blank">376 Bourke Street</a><br><small>Surry Hills</small></td><td>Terrace</td><td>3B/2ba</td><td>&mdash;</td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">Terrace hunting tip: bring pet references and confirm courtyard dimensions for large dog.</div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-sydney-inner-west">
+      <div class="sydney-header">
+        <h1>&#127968; Inner West</h1>
+        <div class="meta">Newtown &middot; Balmain &middot; Annandale &middot; Rozelle &middot; Leichhardt &middot; Petersham &middot; Lilyfield &middot; Camperdown &mdash; Scan #3, June 26, 2026</div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner"><strong>&#128226; Note:</strong> 5 deposits taken since Scan #2 &mdash; market is moving fast here. Act quickly on available listings.</div>
+        <div class="summary">
+          <div class="stat syd-stat"><div class="n">11</div><div class="lbl">Available</div></div>
+          <div class="stat syd-stat"><div class="n">5</div><div class="lbl">Deposit taken</div></div>
+          <div class="stat syd-stat"><div class="n">50</div><div class="lbl">Total domain</div></div>
+        </div>
+        <div class="syd-zone zone">
+          <h2>Inner West <span class="sub">Newtown &middot; Balmain &middot; Annandale &middot; Rozelle &middot; Leichhardt &middot; Petersham &middot; Lilyfield &middot; Camperdown &middot; Croydon Park</span></h2>
+          <table>
+            <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td></td><td><a href="https://www.domain.com.au/94-johnston-street-annandale-nsw-2038-17456743" target="_blank">94 Johnston Street</a><br><small>Annandale</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>2 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/3-reiby-street-newtown-nsw-2042-18168495" target="_blank">3 Reiby Street</a><br><small>Newtown</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,275</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/300-trafalgar-street-annandale-nsw-2038-14098512" target="_blank">300 Trafalgar Street</a><br><small>Annandale</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,280</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td><span class="star-badge">&#11088;</span></td><td><a href="https://www.domain.com.au/72-brocks-lane-newtown-nsw-2042-14840135" target="_blank">72 Brocks Lane</a><br><small>Newtown</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,295</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; Pets OK &middot; 1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/39-beattie-street-balmain-nsw-2041-18182063" target="_blank">39 Beattie Street</a><br><small>Balmain</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,300</strong></td><td><span class="pill pg">Available</span></td><td>Balmain village &middot; 1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/9-myrtle-lane-leichhardt-nsw-2040-18175667" target="_blank">9 Myrtle Lane</a><br><small>Leichhardt</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,300</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/136-foucart-street-rozelle-nsw-2039-18143708" target="_blank">136 Foucart Street</a><br><small>Rozelle</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,375</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/24-sparkes-street-camperdown-nsw-2050-18183364" target="_blank">24 Sparkes Street</a><br><small>Camperdown</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,390</strong></td><td><span class="pill pg">Available</span></td><td></td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/255-lilyfield-road-lilyfield-nsw-2040-14919719" target="_blank">255 Lilyfield Road</a><br><small>Lilyfield</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/9-ellen-street-rozelle-nsw-2039-18152752" target="_blank">9 Ellen Street</a><br><small>Rozelle</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,400</strong></td><td><span class="pill pg">Available</span></td><td>1 parking</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/376-annandale-street-annandale-nsw-2038-18166196" target="_blank">376 Annandale Street</a><br><small>Annandale</small></td><td>House</td><td>3B/3ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>3ba &middot; 1 parking</td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/37-station-street-petersham-nsw-2049-18142166" target="_blank">37 Station Street</a><br><small>Petersham</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,250</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/25-starling-street-lilyfield-nsw-2040-16184406" target="_blank">25 Starling Street</a><br><small>Lilyfield</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,325</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/77-palace-street-petersham-nsw-2049-17278066" target="_blank">77 Palace Street</a><br><small>Petersham</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,350</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/165a-booth-street-annandale-nsw-2038-18157733" target="_blank">165A Booth Street</a><br><small>Annandale</small></td><td>House</td><td>3B/3ba</td><td><strong>$1,355</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/33-byrne-avenue-russell-lea-nsw-2046-18145286" target="_blank">33 Byrne Avenue</a><br><small>Russell Lea</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,600</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">50 total domain.com.au listings in Inner West with pets filter. <a href="https://www.domain.com.au/rent/inner-west-nsw/house/3-bedrooms/?price=1250-1750&petsAllowed=1" target="_blank">See all &rarr;</a></div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-sydney-north-sydney">
+      <div class="sydney-header">
+        <h1>&#127968; North Sydney</h1>
+        <div class="meta">Crows Nest &middot; North Sydney &middot; Waverton &middot; McMahons Point &middot; Naremburn &middot; Cammeray &mdash; <strong>NEW ZONE</strong> &middot; Scan #3, June 26, 2026</div>
+      </div>
+      <div class="tracker-wrap">
+        <div class="new-banner"><strong>&#128226; NEW ZONE &mdash; added Scan #3:</strong> Walkable harbour-side suburbs with quick ferry/train to CBD. 5 Tunks St Waverton is a standout at $1,500/wk for 234m&sup2;.</div>
+        <div class="summary">
+          <div class="stat syd-stat"><div class="n">6</div><div class="lbl">Available</div></div>
+          <div class="stat syd-stat"><div class="n">2</div><div class="lbl">Deposit taken</div></div>
+          <div class="stat syd-stat"><div class="n">2</div><div class="lbl">New this week</div></div>
+        </div>
+        <div class="syd-zone zone">
+          <h2>North Sydney / Crows Nest / Waverton <span class="sub">Crows Nest &middot; North Sydney &middot; Waverton &middot; McMahons Point &middot; Naremburn &middot; Cammeray</span></h2>
+          <table>
+            <thead><tr><th></th><th>Address</th><th>Type</th><th>Bed/Bath</th><th>Price/wk</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><span class="star-badge">&#11088;</span></td><td><a href="https://www.domain.com.au/2-church-street-north-sydney-nsw-2060-18175111" target="_blank">2 Church Street</a><br><small>North Sydney</small></td><td>House</td><td>3B/1ba</td><td><strong>$1,250</strong></td><td><span class="pill pg">Available</span></td><td>Budget floor &middot; Insp 26/6 10:30am</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/152-atchison-street-crows-nest-nsw-2065-18149719" target="_blank">152 Atchison Street</a><br><small>Crows Nest</small></td><td>Semi</td><td>3B/1ba</td><td><strong>$1,450</strong></td><td><span class="pill pg">Available</span></td><td>1 parking &middot; Insp 26/6 10:30am</td></tr>
+              <tr><td><span class="badge">NEW</span><span class="star-badge">&#11088;</span></td><td><a href="https://www.domain.com.au/5-tunks-street-waverton-nsw-2060-18185584" target="_blank">5 Tunks Street</a><br><small>Waverton</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill pg">Available</span></td><td>Top pick &middot; 234m&sup2; &middot; Insp 26/6 11am</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/86-albany-street-crows-nest-nsw-2065-18087728" target="_blank">86 Albany Street</a><br><small>Crows Nest</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,550</strong></td><td><span class="pill pg">Available</span></td><td>1 parking &middot; Insp 26/6 11:15am</td></tr>
+              <tr><td></td><td><a href="https://www.domain.com.au/85-union-street-mcmahons-point-nsw-2060-18130690" target="_blank">85 Union Street</a><br><small>McMahons Point</small></td><td>Semi</td><td>3B/2ba</td><td><strong>$1,595</strong></td><td><span class="pill pg">Available</span></td><td>Harbour views &middot; Insp 26/6 9:15am</td></tr>
+              <tr><td><span class="badge">NEW</span></td><td><a href="https://www.domain.com.au/1-wilson-street-cammeray-nsw-2062-18136266" target="_blank">1 Wilson Street</a><br><small>Cammeray</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,750</strong></td><td><span class="pill pg">Available</span></td><td>Budget max &middot; 1 parking</td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/133-holtermann-street-crows-nest-nsw-2065-18106482" target="_blank">133 Holtermann Street</a><br><small>Crows Nest</small></td><td>House</td><td>3B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+              <tr class="deposit"><td></td><td><a href="https://www.domain.com.au/12-martin-street-naremburn-nsw-2065-18131213" target="_blank">12 Martin Street</a><br><small>Naremburn</small></td><td>House</td><td>4B/2ba</td><td><strong>$1,500</strong></td><td><span class="pill py">Deposit Taken</span></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">Next scan: Fri 3 Jul 2026 &middot; Full report: sydney_rentals_06262026.html in Costa Rica Relocation folder</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ AUSTIN PANELS ═══════════════════════════════ -->
+    <div class="locale-panel" id="panel-austin-downtown">
+      <div class="tracker-wrap">
+        <div class="tracker-header" style="background:linear-gradient(135deg,#5c3d1e,#c57c3c);">
+          <h1>&#127961;&#65039; Downtown / East Austin / Zilker</h1>
+          <div class="meta">78701 &middot; 78702 &middot; 78704 &middot; Budget $5,000 &middot; Condos preferred &mdash; Scanned June 26, 2026</div>
+        </div>
+        <div class="new-banner" style="border-left-color:#2e8b57; margin-top:16px; margin-bottom:0;">
+          <strong style="color:#2e8b57;">Update June 26:</strong> Vesper #1401 price dropped $4,940&rarr;<strong>$4,850</strong> and now offers 6 weeks free on select leases.
+          <strong>800 Embassy Dr remains the value standout</strong> &mdash; $3,200 all-in, 2BR+office, pool + dog park.
+        </div>
+        <div class="summary">
+          <div class="stat"><div class="n">3</div><div class="lbl">Leads</div></div>
+          <div class="stat"><div class="n">2</div><div class="lbl">With Pool</div></div>
+          <div class="stat"><div class="n">3</div><div class="lbl">Active Now</div></div>
+        </div>
+        <div class="zone">
+          <h2>East Austin / Rainey Street (78702 &middot; 78701) <span class="sub">Near Lady Bird Lake &middot; Franklin&rsquo;s BBQ &middot; Saltillo Plaza</span></h2>
+          <table>
+            <tr><th>Property</th><th>Building</th><th>Price/mo</th><th>Beds/Bath</th><th>Sqft</th><th>Pool</th><th>Pets</th><th>Avail</th><th>Status</th><th>Note</th></tr>
+            <tr style="background:#fffbe6;">
+              <td><a href="https://www.apartments.com/800-embassy-dr-austin-tx/tvpjj2c/" target="_blank"><strong>800 Embassy Dr #420</strong></a><br><small style="color:#888;">For Rent By Owner / Apt.com</small></td>
+              <td>The Tyndall<br><small style="color:#888;">78702 &middot; E Austin</small></td>
+              <td><strong>$3,200</strong><br><span style="font-size:0.68rem;color:var(--green);">All-in incl. water/trash</span></td>
+              <td>2BR+office/2BA</td><td>1,200</td>
+              <td><span class="pill pg">Pool + dog park &#10003;</span></td>
+              <td><span class="pill pg">Dogs + cats &#10003;</span></td>
+              <td>Now</td>
+              <td><span class="pill pg">&#11088; Active</span></td>
+              <td>$3,200 all-in (water/trash incl.), $250 pet fee. Pool deck, yard, EV charging, BBQ pits. Office nook. Walk Score 80.</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.apartments.com/84-east-ave-austin-tx-unit-2903/pg5mlqr/" target="_blank">84 East Ave #2903</a><br><small style="color:#888;">Vesper / Apt.com</small></td>
+              <td>Vesper (2024)<br><small style="color:#888;">78701 &middot; Rainey St</small></td>
+              <td>$3,500<br><span style="font-size:0.68rem;color:var(--yellow);">+utilities</span></td>
+              <td>2BR/2BA</td><td>969</td>
+              <td><span class="pill pg">Rooftop pool &#10003;</span></td>
+              <td><span class="pill pg">Medium pets &#10003;</span></td>
+              <td>Now</td>
+              <td><span class="pill pg">Active</span></td>
+              <td>41-story luxury high-rise (2024). Rooftop pool, private dog run, yoga+spin studio, concierge, Lady Bird Lake trail nearby.</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.apartments.com/84-east-ave-austin-tx-unit-1401/28fnm39/" target="_blank">84 East Ave #1401</a><br><small style="color:#888;">Vesper / Apt.com</small></td>
+              <td>Vesper (2024)<br><small style="color:#888;">78701 &middot; Rainey St</small></td>
+              <td><strong>$4,850</strong><br><span style="font-size:0.68rem;color:var(--green);">&#8595; was $4,940 &middot; 6wks free</span></td>
+              <td>2BR/2BA</td><td>1,293</td>
+              <td><span class="pill pg">Rooftop pool &#10003;</span></td>
+              <td><span class="pill pg">Medium pets &#10003;</span></td>
+              <td>Now</td>
+              <td><span class="pill pg">Active</span></td>
+              <td>Larger unit (1,293sqft). Balcony, city views. Price drop + 6 weeks free on select leases (Jun 26).</td>
+            </tr>
+          </table>
+        </div>
+        <div class="zone" style="margin-top:20px;">
+          <h2>Zilker District / Barton Hills (78704) <span class="sub">Near Barton Springs Pool &middot; Zilker Park &middot; Lady Bird Lake</span></h2>
+          <table>
+            <tr><th>Property</th><th>Building</th><th>Price/mo</th><th>Beds/Bath</th><th>Sqft</th><th>Pool</th><th>Pets</th><th>Avail</th><th>Status</th><th>Note</th></tr>
+            <tr>
+              <td><a href="https://www.apartments.com/210-lee-barton-dr-austin-tx-unit-517/qs1hpxz/" target="_blank">210 Lee Barton Dr #517</a><br><small style="color:#888;">Private / Apt.com</small></td>
+              <td>Zilker Condo<br><small style="color:#888;">78704 &middot; Zilker</small></td>
+              <td>$4,500</td>
+              <td>2BR/2BA</td><td>1,369</td>
+              <td><span class="pill pr">None</span></td>
+              <td><span class="pill pg">Dogs + cats &#10003;</span></td>
+              <td>Now</td>
+              <td><span class="pill pg">Active</span></td>
+              <td>Spacious (1,369sqft), hardwood, W/D in unit. Walk to Zilker, Barton Springs, Umlauf Garden. No pool.</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-austin-westlake">
+      <div class="tracker-wrap">
+        <div class="tracker-header" style="background:linear-gradient(135deg,#1a4a2e,#2e8b57);">
+          <h1>&#127968; Westlake Hills / Lost Creek</h1>
+          <div class="meta">78746 &middot; Eanes ISD &middot; West Lake Hills &middot; Lost Creek &mdash; Scanned June 26, 2026</div>
+        </div>
+        <div class="new-banner" style="border-left-color:#2e8b57; margin-top:16px; margin-bottom:0;">
+          <strong style="color:#2e8b57;">Update June 26:</strong> 100 McConnell Dr confirmed still off-market. 6305 Forest Hills Dr confirmed still off-market. 208 Westhaven Dr remains the only active pet-friendly pool home in Westlake near budget.
+        </div>
+        <div class="summary">
+          <div class="stat"><div class="n">3</div><div class="lbl">Leads</div></div>
+          <div class="stat"><div class="n">1</div><div class="lbl">Pool + Pets</div></div>
+          <div class="stat"><div class="n">1</div><div class="lbl">Active Now</div></div>
+        </div>
+        <div class="zone">
+          <h2>West Lake Hills / Lost Creek (78746) <span class="sub">Eanes ISD &mdash; top-rated schools in greater Austin</span></h2>
+          <table>
+            <tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Bath</th><th>Sqft</th><th>Pool</th><th>Pets</th><th>Avail</th><th>Status</th><th>Note</th></tr>
+            <tr style="background:#fffbe6;">
+              <td><a href="https://www.zillow.com/homedetails/208-Westhaven-Dr-West-Lake-Hills-TX-78746/29332612_zpid/" target="_blank"><strong>208 Westhaven Dr</strong></a><br><small style="color:#888;">Zillow Rentals</small></td>
+              <td>West Lake Hills</td>
+              <td><strong>$4,275</strong><br><span style="font-size:0.68rem;color:var(--yellow);">$275 over ceiling</span></td>
+              <td>3BR/2.5BA</td><td>2,448</td>
+              <td><span class="pill pg">Private pool &#10003;</span></td>
+              <td><span class="pill pg">All pets &#10003;</span></td>
+              <td>Now</td>
+              <td><span class="pill pg">&#11088; Active</span></td>
+              <td>1,400sqft deck+pool, jetted tub, fenced yard, Eanes ISD. New roof/AC/electrical. Negotiate to $4,000 (32+ days listed).</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.zillow.com/homedetails/100-McConnell-Dr-Austin-TX-78746/29332654_zpid/" target="_blank">100 McConnell Dr</a><br><small style="color:#888;">Zillow Rentals</small></td>
+              <td>Westlake Hills</td><td>$3,995</td><td>3BR/3BA</td><td>1,600</td>
+              <td><span class="pill pr">None</span></td>
+              <td><span class="pill pg">Pets OK &#10003;</span></td>
+              <td>&mdash;</td>
+              <td><span class="pill py">Off market (conf. 6/26)</span></td>
+              <td>Confirmed still off-market as of June 26. Fenced yard, garage, Eanes ISD. Contact owner to ask re-list.</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.zillow.com/homedetails/6305-Forest-Hills-Dr-Austin-TX-78746/29334388_zpid/" target="_blank">6305 Forest Hills Dr</a><br><small style="color:#888;">Unlock MLS #4836920</small></td>
+              <td>Lost Creek</td><td>$3,500</td><td>4BR/2BA</td><td>1,608</td>
+              <td><span class="pill py">Unknown</span></td>
+              <td><span class="pill py">Unknown</span></td>
+              <td>&mdash;</td>
+              <td><span class="pill py">Off market (conf. 6/26)</span></td>
+              <td>Confirmed still off-market as of June 26. 0.44-acre lot. Has re-listed 3&times;. Likely re-list late summer 2026.</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-austin-tarrytown">
+      <div class="tracker-wrap">
+        <div class="tracker-header" style="background:linear-gradient(135deg,#2d1a4a,#6a3d9c);">
+          <h1>&#127981; Tarrytown</h1>
+          <div class="meta">78703 &middot; Tarrytown &middot; Pemberton Heights &middot; Bryker Woods &mdash; Scanned June 26, 2026</div>
+        </div>
+        <div class="new-banner" style="border-left-color:#7b5ea7; margin-top:16px; margin-bottom:0;">
+          <strong style="color:#7b5ea7;">Update June 26:</strong> 3206 Kerbey Ln shows <span style="text-decoration:line-through;color:#999;">$4,200</span> &rarr; <strong>$3,900</strong> &mdash; price reduction now visible on listing. Verify pet policy + 12-mo lease ASAP.
+        </div>
+        <div class="summary">
+          <div class="stat"><div class="n">1</div><div class="lbl">Lead</div></div>
+          <div class="stat"><div class="n">?</div><div class="lbl">Pool TBD</div></div>
+          <div class="stat"><div class="n">?</div><div class="lbl">Pets TBD</div></div>
+        </div>
+        <div class="zone">
+          <h2>Tarrytown / Bryker Woods (78703) <span class="sub">Central West Austin &mdash; ~2 miles from downtown</span></h2>
+          <table>
+            <tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Bath</th><th>Sqft</th><th>Pool</th><th>Pets</th><th>Status</th><th>Note</th></tr>
+            <tr>
+              <td><a href="https://www.zillow.com/homedetails/3206-Kerbey-Ln-Austin-TX-78703/29337765_zpid/" target="_blank">3206 Kerbey Ln</a><br><small style="color:#888;">Zillow / 78703</small></td>
+              <td>Tarrytown</td>
+              <td><strong>$3,900</strong><br><span style="font-size:0.68rem;"><span style="text-decoration:line-through;color:#999;">$4,200</span> reduced</span></td>
+              <td>3BR/2BA</td><td>1,330</td>
+              <td><span class="pill py">Ask</span></td>
+              <td><span class="pill py">Ask</span></td>
+              <td><span class="pill py">Verify active</span></td>
+              <td>Only in-budget 3BR in Tarrytown. Price drop ($4,200 &rarr; $3,900) now shown on listing. Confirm pet policy + 12-mo lease ASAP.</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="locale-panel" id="panel-austin-barton-hills">
+      <div class="tracker-wrap">
+        <div class="tracker-header" style="background:linear-gradient(135deg,#1a3a4a,#1a6b8a);">
+          <h1>&#127344; Barton Hills / Zilker</h1>
+          <div class="meta">78704 &middot; Barton Hills &middot; South Lamar &middot; Bouldin Creek &middot; SoCo &mdash; Scanned June 26, 2026</div>
+        </div>
+        <div class="new-banner" style="border-left-color:#1a6b8a; margin-top:16px; margin-bottom:0;">
+          <strong style="color:#1a6b8a;">Best lead:</strong> 129 Coleman St &mdash; 5BR/3BA, $3,200, cats + small dogs, available Aug 4. 109 days listed = motivated landlord.
+          <strong>Dog size limit is the only question &mdash; one call answers it.</strong>
+        </div>
+        <div class="summary">
+          <div class="stat"><div class="n">1</div><div class="lbl">Lead</div></div>
+          <div class="stat"><div class="n">0</div><div class="lbl">With Pool</div></div>
+          <div class="stat"><div class="n">2</div><div class="lbl">Disqualified</div></div>
+        </div>
+        <div class="zone">
+          <h2>Barton Hills / South Lamar / Bouldin Creek (78704) <span class="sub">Near Barton Springs Pool, Lady Bird Lake trail, South Congress</span></h2>
+          <table>
+            <tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Bath</th><th>Sqft</th><th>Pool</th><th>Pets</th><th>Avail</th><th>Status</th><th>Note</th></tr>
+            <tr>
+              <td><a href="https://www.zillow.com/homedetails/129-Coleman-St-Austin-TX-78704/29478353_zpid/" target="_blank"><strong>129 Coleman St</strong></a><br><small style="color:#888;">24th Street Realty</small></td>
+              <td>Dawson / SoCo</td><td><strong>$3,200</strong></td><td>5BR/3BA</td><td>1,700</td>
+              <td><span class="pill pr">None</span></td>
+              <td><span class="pill py">Cats + small dogs &#9888;</span></td>
+              <td>Aug 4, 2026</td>
+              <td><span class="pill pg">Active &mdash; pre-lease</span></td>
+              <td>Yard, patio, W/D included. 109 days listed &mdash; motivated landlord. <strong>Ask if medium black lab qualifies as &ldquo;small dog.&rdquo;</strong></td>
+            </tr>
+            <tr>
+              <td>3201 Dolphin Dr<br><small style="color:#888;">Zillow Rentals</small></td>
+              <td>South Lamar</td><td>$3,600</td><td>3BR/2BA</td><td>1,200</td>
+              <td><span class="pill pr">None</span></td>
+              <td><span class="pill pr">No cats &#10007;</span></td>
+              <td>&mdash;</td>
+              <td><span class="pill pr">Disqualified</span></td>
+              <td>&ldquo;No cats&rdquo; eliminates.</td>
+            </tr>
+            <tr>
+              <td>302 W Johanna St<br><small style="color:#888;">Owner / Zillow</small></td>
+              <td>Bouldin Creek</td><td>$3,750</td><td>3BR/2.5BA</td><td>1,500</td>
+              <td><span class="pill pr">None</span></td>
+              <td><span class="pill pr">No pets &#10007;</span></td>
+              <td>&mdash;</td>
+              <td><span class="pill pr">Disqualified</span></td>
+              <td>Short-term sublet only. No pets.</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.content -->
+
+<script>
+/* ── Data ── */
+const DESTS = {
+  cr: {
+    label:'Costa Rica', icon:'&#127796;',
+    subs:[
+      {id:'south-pacific',     label:'South Pacific',      meta:'Dominical · Uvita · Ojochal'},
+      {id:'nicoya',            label:'Nicoya / Nosara',    meta:'Nosara · Sámara · Carrillo'},
+      {id:'norte-guanacaste',  label:'Norte Guanacaste',   meta:'Tamarindo · Flamingo · Avellanas'},
+      {id:'central-valley',    label:'Central Valley',     meta:'Escazú · Santa Ana · Heredia'}
+    ]
+  },
+  sydney: {
+    label:'Sydney', icon:'&#127466;&#127462;',
+    subs:[
+      {id:'eastern-beaches',   label:'Eastern Beaches',    meta:'Bondi · Maroubra · Surry Hills'},
+      {id:'northern-beaches',  label:'Northern Beaches',   meta:'Manly · Dee Why · Narrabeen'},
+      {id:'central-coast',     label:'Central Coast',      meta:'Terrigal · Avoca · Gosford'},
+      {id:'paddington',        label:'Paddington Terraces',meta:'Paddo · Surry Hills · Darlinghurst'},
+      {id:'inner-west',        label:'Inner West',         meta:'Newtown · Balmain · Annandale'},
+      {id:'north-sydney',      label:'North Sydney',       meta:'Crows Nest · Waverton · McMahons Pt'}
+    ]
+  },
+  austin: {
+    label:'Austin', icon:'&#127774;',
+    subs:[
+      {id:'downtown',    label:'Downtown / E. Austin', meta:'78701 · 78702 · condos'},
+      {id:'westlake',    label:'Westlake Hills',       meta:'Westlake Hills · Rollingwood'},
+      {id:'tarrytown',   label:'Tarrytown',            meta:'Tarrytown · Pemberton · Bryker'},
+      {id:'barton-hills',label:'Barton Hills / Zilker', meta:'Barton Springs · Lady Bird Lake'}
+    ]
+  }
+};
+
+/* ── State ── */
+let activeDest = 'cr';
+let activeSub  = 'south-pacific';
+
+/* ── Sub-nav render ── */
+function renderSubNav() {
+  const dest = DESTS[activeDest];
+  const nav = document.getElementById('sub-nav');
+  nav.innerHTML = dest.subs.map(s => {
+    const isActive = s.id === activeSub;
+    return `<button class="sub-nav-btn${isActive?' active':''}" data-dest="${activeDest}" data-sub="${s.id}">
+      ${s.label}<span class="sub-meta">${s.meta}</span>
+    </button>`;
+  }).join('');
+}
+
+/* ── Panel visibility ── */
+function showPanel(dest, sub) {
+  document.querySelectorAll('.locale-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-'+dest+'-'+sub);
+  if (panel) panel.classList.add('active');
+}
+
+/* ── Top-nav clicks ── */
+document.querySelector('.dest-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.dest-btn');
+  if (!btn) return;
+  activeDest = btn.dataset.dest;
+  activeSub  = DESTS[activeDest].subs[0].id;
+  document.querySelectorAll('.dest-btn').forEach(b => b.classList.toggle('active', b === btn));
+  renderSubNav();
+  showPanel(activeDest, activeSub);
+});
+
+/* ── Sub-nav clicks ── */
+document.getElementById('sub-nav').addEventListener('click', e => {
+  const btn = e.target.closest('.sub-nav-btn');
+  if (!btn) return;
+  activeSub = btn.dataset.sub;
+  document.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.toggle('active', b === btn));
+  showPanel(activeDest, activeSub);
+});
+
+/* ── Zone render helpers ── */
+const pc = {g:'pg', y:'py', r:'pr'};
+function pill(v, yes, no) {
+  const cls = pc[v] || 'py';
+  const lbl = v==='g' ? yes : v==='r' ? no : 'Ask';
+  return `<span class="pill ${cls}">${lbl}</span>`;
+}
+
+/* ── SOUTH PACIFIC data ── */
+const spData = [
+ {z:'Zone 1 — Dominical / Escaleras / Lagunas de Barú',s:'Priority area',rows:[
+  {n:'Ocean &amp; Sunset View + Casita',a:'Lagunas de Barú',p:'$350/nt (LT TBD)',b:'4BR/3BA',pool:'g',pet:'y',net:'Fiber ✓',u:'https://www.dominicalproperty.com/property/ocean-and-sunset-view-home-with-pool-plus-casita/',src:'Dominical Property',note:'⭐ Ask monthly rate. ✉ Drafted 6/11.',st:1,isnew:0},
+  {n:'Villa Mountain Serenity',a:'Cascada Azul',p:'Ask',b:'3BR/3BA',pool:'g',pet:'y',net:'USB data (verify)',u:'http://www.costaballenamanagement.com/rentals-in-dominical-area.html',src:'Costa Ballena Mgmt',note:'⭐ A/C throughout. ✉ Drafted 6/11.',st:1,isnew:0},
+  {n:'Casa de los Sueños',a:'Escaleras',p:'Ask',b:'3BR/2BA',pool:'g',pet:'y',net:'128kbps ⚠️',u:'http://www.costaballenamanagement.com/rentals-in-dominical-area.html',src:'Costa Ballena Mgmt',note:'⭐ Pool + jacuzzi. Slow internet. ✉ Drafted 6/11.',st:1,isnew:0},
+  {n:'Casa Quetzal ↑',a:'Lagunas de Barú',p:'$1,850',b:'2BR/2BA',pool:'g',pet:'g',net:'Fiber ✓',u:'https://www.dominicalproperty.com/property/casa-quetzal-long-term-rental-in-lagunas/',src:'Dominical Property',note:'↑ UPDATED 6/19: pets ✓ + fiber ✓ confirmed. ✉ Drafted 6/19.',st:0,isnew:1},
+  {n:'Casa Futura',a:'Uvita (4x4 access)',p:'Ask',b:'3BR/3BA ensuite',pool:'g',pet:'y',net:'Fiber ✓',u:'http://www.costaballenamanagement.com/rentals-in-uvita-area.html',src:'Costa Ballena Mgmt',note:'⭐ Fiber, pool, Whale\'s Tail views. ✉ Drafted 6/11.',st:1,isnew:0}
+ ]},
+ {z:'Zone 2 — Uvita / Bahía Ballena / Playa Hermosa',s:'',rows:[
+  {n:'Villa Eco del Rio 🆕',a:'Uvita (gated, near river)',p:'Ask (Airbnb monthly TBD)',b:'3BR',pool:'g',pet:'g',net:'Ask',u:'https://costaricalasvillas.com/vacation-rental/villa-eco-del-rio-uvita-3-bedroom-private-pool/',src:'Osa Property Mgmt',note:'🆕 Pet-friendly confirmed. Private pool, AC. ✉ Drafted 6/19.',st:1,isnew:1},
+  {n:'Casa Fishplanx',a:'Bahía (walk to beach)',p:'Ask',b:'3BR/3BA ensuite',pool:'g',pet:'y',net:'Wi-Fi ✓',u:'http://www.costaballenamanagement.com/rentals-in-uvita-area.html',src:'Costa Ballena Mgmt',note:'⭐ Courtyard pool. ✉ Drafted 6/11.',st:1,isnew:0}
+ ]},
+ {z:'Zone 3 — Ojochal / Tres Ríos / Cinco Ventanas',s:'Strong inventory',rows:[
+  {n:'Tropical Villa Ojochal | Starlink 🆕⭐',a:'Ojochal',p:'Ask (Airbnb monthly TBD)',b:'3BR/2.5BA',pool:'g',pet:'y',net:'Starlink ✓ ⭐',u:'https://www.airbnb.com/rooms/1450339894578676281',src:'Airbnb',note:'🆕 BEST NEW FIND. Saltwater pool, Starlink, mountain views. ✉ Drafted 6/19.',st:1,isnew:1},
+  {n:'Villa Jubilo 🆕',a:'Ojochal',p:'Ask (monthly TBD)',b:'3BR/2BA',pool:'g',pet:'y',net:'200 Mbps ✓',u:'https://costaricalasvillas.com/vacation-rental/villa-jubilo-ojochal/',src:'Osa Property Mgmt',note:'🆕 Easy access, 200 Mbps. ✉ Drafted 6/19.',st:1,isnew:1},
+  {n:'Casa en el Cielo 🆕',a:'Ojochal (Punta Mala)',p:'~$207/nt → ask LT',b:'3BR/4BA',pool:'g',pet:'y',net:'Wi-Fi ✓',u:'https://www.airbnb.com/rooms/906631002937492794',src:'Airbnb',note:'🆕 3BR/4BA, private pool. ✉ Drafted 6/19.',st:1,isnew:1},
+  {n:'Estilo de Vida',a:'Cinco Ventanas, Ojochal',p:'Ask',b:'3BR/2.5BA',pool:'g',pet:'y',net:'Wi-Fi ✓',u:'http://www.costaballenamanagement.com/rentals-in-ojochal-area.html',src:'Costa Ballena Mgmt',note:'⭐⭐ BEST SPEC MATCH — exact 3BR/2.5BA, pool+jacuzzi. ✉ Drafted 6/11.',st:1,isnew:0},
+  {n:'2BR + Office + Pool',a:'Ojochal',p:'$1,600 + util',b:'2BR+office/2BA',pool:'g',pet:'y',net:'High-speed ✓',u:'https://www.dominicalproperty.com/property/for-rent-2-bedroom-home-office-room-pool-and-garden/',src:'Dominical Property',note:'⭐ Excellent 2BR+office fit. ✉ Drafted 6/11.',st:1,isnew:0}
+ ]}
+];
+let spFilter = 'all';
+function renderSP() {
+  const c = document.getElementById('sp-zones'); c.innerHTML = '';
+  spData.forEach(z => {
+    const show = spFilter==='all' ? z.rows : z.rows.filter(r => spFilter==='pool'?r.pool==='g': spFilter==='strong'?r.st===1:r.isnew===1);
+    if (!show.length) return;
+    let h = `<div class="zone"><h2>${z.z}${z.s?`<span class="sub">${z.s}</span>`:''}</h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Internet</th><th>Note</th></tr>`;
+    show.forEach(r => {
+      const name = r.u ? `<a href="${r.u}" target="_blank" rel="noopener">${r.n}</a>` : r.n;
+      h += `<tr><td>${name}${r.isnew?'<span class="badge">NEW 6/19</span>':''}<br><small>${r.src}</small></td><td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+           `<td>${pill(r.pool,'Pool ✓','No pool')}</td><td>${pill(r.pet,'Pets ✓','No pets')}</td><td>${r.net}</td><td>${r.note}</td></tr>`;
+    });
+    h += '</table></div>';
+    c.insertAdjacentHTML('beforeend', h);
+  });
+}
+document.getElementById('sp-filters').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  spFilter = e.target.dataset.f;
+  document.querySelectorAll('#sp-filters .ctrl-btn').forEach(b => b.classList.toggle('active', b===e.target));
+  renderSP();
+});
+renderSP();
+
+/* ── NICOYA data (June 26 2026) ── */
+const nicData = [
+ {z:'Zone 1 — Nosara (Guiones · Pelada · Garza)',s:'Priority area',rows:[
+  {n:'Jungle Tree House + Casita',a:'Playa Pelada, Nosara',p:'$3,577/mo',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/613752709235557018',src:'Airbnb',note:'⭐ TOP PICK. Superhost 13yrs. Canopy ocean views, private pool. Draft r1238951221735904380.',nw:1,drafted:1},
+  {n:'Private Dual Villas Pool Walk to Beach',a:'Nosara (Guiones)',p:'~$2k–$4.2k',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1406007327970354883',src:'Airbnb',note:'⭐ Pool + walk to Guiones. 4.84★ (25 reviews). Draft r-7122971710268849883.',nw:1,drafted:1},
+  {n:'Serene Stay at Casa Odessa',a:'Nosara',p:'~$2k–$4.2k',b:'3BR/3.5BA',pool:'y',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1590935149676068076',src:'Airbnb',note:'5.0★ (11 reviews). Community pool 100m. Draft r9038094877846242623.',nw:1,drafted:1},
+  {n:'Casa Mirella',a:'Nosara',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1349389461927707070',src:'Airbnb',note:'⭐ 4.95★ (19 reviews). Draft r-5766434499489404774.',nw:1,drafted:1},
+  {n:'Casa Malinche — Jungle View',a:'Nosara',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/792040376538186636',src:'Airbnb',note:'Jungle view, pool. Draft queued.',nw:1,drafted:0},
+  {n:'Casa Cocobolo',a:'Playa Pelada, Nosara',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/655950264304307092',src:'Airbnb',note:'Pelada beach area, pool. Draft queued.',nw:1,drafted:0},
+  {n:'Villa Huitzilin',a:'Las Tecas (10-min walk Pelada & Guiones)',p:'Inquire',b:'4BR/4BA',pool:'g',pet:'y',wifi:'g',u:'https://www.nosararealestate.com/listing/villa-huitzilin/',src:'Nosara RE',note:'⭐ TOP PICK. Saltwater pool, Starlink+fiber, desks every room, sauna+cold plunge. Draft WhatsApp r8761734973145469282.',nw:0,drafted:1},
+  {n:'Casa de Calma',a:'Nosara — walk to beach',p:'From $3,000',b:'3BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'⭐ Best entry price VN batch. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Pochote',a:'Nosara — Guiones, walk to beach',p:'From $3,750',b:'3BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'⭐ Guiones walk-to-beach. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Casa Arena',a:'Nosara — Guiones, walk to beach',p:'From $3,800',b:'4BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'⭐ 4BR option. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Casa Saltamontes',a:'Nosara — jungle',p:'From $3,800',b:'3BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'Private jungle. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Patitos Casa',a:'Nosara — downtown Guiones',p:'From $3,800',b:'3BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'⭐ Best walkability. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Girasol',a:'Nosara — private, walk to beach',p:'From $4,000',b:'3BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'Private setting. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Casa Ocaso',a:'Nosara — walk to beach',p:'From $4,200',b:'4BR/?BA',pool:'g',pet:'y',wifi:'y',u:'https://www.vacationnosara.com/long-term-rentals-vacationnosara',src:'Vacation Nosara',note:'At ceiling (pre-VAT). Ask LT reduction. Draft r221854163974400612.',nw:0,drafted:1},
+  {n:'Casa Dos Cocos',a:'Nosara — Guiones Beach Club',p:'Inquire',b:'4BR/4.5BA',pool:'y',pet:'y',wifi:'y',u:'https://rentnosarareservations.com/en/4544191/casa-dos-cocos-4-br-home-walk-to-beach-surf',src:'RentNosara',note:'4BR option. Pool unconfirmed. Draft r-7175475303642038667.',nw:0,drafted:1},
+  {n:'Private Beach House w/ Pool',a:'Playa Pelada',p:'Inquire (LT disc.)',b:'3BR/2BA',pool:'g',pet:'g',wifi:'y',u:'https://www.vrbo.com/208021',src:'VRBO',note:'Pet-friendly confirmed. Draft to Mango PM 06-12 — confirm sent.',nw:0,drafted:1},
+  {n:'Casa Estrellas',a:'Guiones North',p:'Inquire',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://rentnosarareservations.com/en/3385656/casa-estrellas-walk-to-beach-surf-private-pool',src:'RentNosara',note:'⭐ Walk to beach, private pool. Draft r-7175475303642038667.',nw:0,drafted:1},
+  {n:'Jungle House A',a:'Guiones',p:'Inquire',b:'3BR/4BA',pool:'g',pet:'y',wifi:'y',u:'https://www.nosararealestate.com/listing/jungle-house-a-3-br-w-private-pool/',src:'Nosara RE',note:'Private pool. Draft WhatsApp r8761734973145469282.',nw:0,drafted:1},
+  {n:'Jungle House B',a:'Guiones',p:'Inquire',b:'3BR/4BA',pool:'g',pet:'y',wifi:'y',u:'https://www.nosararealestate.com/listing/jungle-house-b-3-br-w-private-pool/',src:'Nosara RE',note:'Private pool. Draft WhatsApp r8761734973145469282.',nw:0,drafted:1},
+  {n:'Casa Rincón Escondido',a:'Guiones North',p:'Inquire',b:'3BR/3.5BA',pool:'y',pet:'y',wifi:'y',u:'https://www.nosararealestate.com/listing/casa-rincon-escondido/',src:'Nosara RE',note:'Draft WhatsApp r8761734973145469282.',nw:0,drafted:1},
+  {n:'Casa Bellevue',a:'Guiones',p:'Inquire',b:'3BR/3.5BA',pool:'y',pet:'y',wifi:'y',u:'https://www.nosararealestate.com/listing/casa-bellevue-location-location-location/',src:'Nosara RE',note:'"Location location location." Draft WhatsApp r8761734973145469282.',nw:0,drafted:1}
+ ]},
+ {z:'Nosara Springs',s:'Private community — 2 new listings 06-26',rows:[
+  {n:'Villa Mona #1 — Nosara Springs Tropical Retreat',a:'Nosara Springs',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1336230036387845818',src:'Airbnb',note:'Private Nosara Springs community. Draft queued.',nw:1,drafted:0},
+  {n:'Villa Mona #2 — Nosara Springs Tropical Retreat',a:'Nosara Springs',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/701353096996205919',src:'Airbnb',note:'Private Nosara Springs community. Draft queued.',nw:1,drafted:0}
+ ]},
+ {z:'Zone 2 — Sámara / Carrillo',s:'',rows:[
+  {n:'Casa Pomelo Modern Luxury Home',a:'Sámara',p:'~$2k–$4.2k',b:'3BR/2.5BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1645932085727691222',src:'Airbnb',note:'⭐ 5.0★ (11 reviews). Modern luxury. Draft r8994025251317515507.',nw:1,drafted:1},
+  {n:'Casa Luna',a:'Sámara',p:'$4,108/mo',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/41256229',src:'Airbnb',note:'⭐ $4,108/mo confirmed. Host Alfredo. Batch draft r110292489828449451.',nw:1,drafted:1},
+  {n:'Casa Sol',a:'Sámara',p:'~$2k–$4.2k',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/41175369',src:'Airbnb',note:'Same host as Casa Luna (Alfredo). Batch draft r110292489828449451.',nw:1,drafted:1},
+  {n:'Casa Tarantella',a:'Sámara',p:'~$2k–$4.2k',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/33037490',src:'Airbnb',note:'⭐ Seaview + pool. Batch draft r110292489828449451.',nw:1,drafted:1},
+  {n:'The Samara Nest',a:'Sámara',p:'~$2k–$4.2k',b:'3BR/3BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/25777973',src:'Airbnb',note:'⭐ 87 reviews. Batch draft r110292489828449451.',nw:1,drafted:1},
+  {n:'Amazing Ocean View Villa',a:'Puerto Carrillo',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/31204116',src:'Airbnb',note:'⭐ 4.92★ (158 reviews). Walk to beach. Batch draft r110292489828449451.',nw:1,drafted:1},
+  {n:'Casa Solaris',a:'Sámara',p:'~$2k–$4.2k',b:'3BR/2.5BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1573394447654902810',src:'Airbnb',note:'One step from beach + town. Draft queued.',nw:1,drafted:0},
+  {n:'Private Gated 5BR Saltwater Pool',a:'Sámara',p:'~$2k–$4.2k',b:'5BR/2.5BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/47218617',src:'Airbnb',note:'5BR — ask about rate. Draft queued.',nw:1,drafted:0},
+  {n:'Casa Porque No',a:'Torito (near Sámara)',p:'~$2k–$4.2k',b:'3BR/2.5BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/1076205675726027484',src:'Airbnb',note:'Near Sámara, Torito area. Draft queued.',nw:1,drafted:0},
+  {n:'house savana',a:'Sámara',p:'$2,357 (06-12)',b:'3BR/3BA',pool:'g',pet:'g',wifi:'y',u:'https://www.airbnb.com/rooms/1310226203628143270',src:'Airbnb',note:'⭐ Budget-friendly. Airbnb draft 06-12. Verify current price.',nw:0,drafted:1},
+  {n:'Sunset Surf',a:'Sámara',p:'$2,409 (06-12)',b:'3BR/2BA',pool:'g',pet:'g',wifi:'y',u:'https://www.airbnb.com/rooms/1453719288606856325',src:'Airbnb',note:'Solid price. Airbnb draft 06-12. Verify current price.',nw:0,drafted:1}
+ ]},
+ {z:'Other Nearby — Guanacaste Province',s:'Confirm proximity to coast',rows:[
+  {n:'El Jardin (The Garden)',a:'Guanacaste Province',p:'~$2k–$4.2k',b:'3BR/2BA',pool:'g',pet:'y',wifi:'y',u:'https://www.airbnb.com/rooms/818096285395779298',src:'Airbnb',note:'Verify exact location vs. Nosara/Sámara. Draft queued.',nw:1,drafted:0}
+ ]}
+];
+let nicFilter = 'all';
+function renderNic() {
+  const c = document.getElementById('nic-zones'); c.innerHTML = '';
+  let total = 0;
+  nicData.forEach(z => {
+    const rows = z.rows.filter(r =>
+      nicFilter==='all'?true: nicFilter==='pool'?r.pool==='g': nicFilter==='pet'?r.pet==='g': nicFilter==='new'?r.nw===1: r.drafted===1
+    );
+    if (!rows.length) return;
+    total += rows.length;
+    let h = `<div class="zone"><h2>${z.z}${z.s?`<span class="sub">${z.s}</span>`:''}</h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Wi-Fi</th><th>Note</th></tr>`;
+    rows.forEach(r => {
+      const name = r.u ? `<a href="${r.u}" target="_blank" rel="noopener">${r.n}</a>` : r.n;
+      h += `<tr><td>${name}${r.nw?'<span class="badge">NEW</span>':''}${r.drafted?'<span class="drafted-badge">✉️</span>':''}<br><small>${r.src}</small></td>`+
+           `<td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+           `<td>${pill(r.pool,'Pool ✓','No pool')}</td><td>${pill(r.pet,'Pets ✓','No pets')}</td>`+
+           `<td>${pill(r.wifi,'Wi-Fi ✓','No Wi-Fi')}</td><td>${r.note}</td></tr>`;
+    });
+    h += '</table></div>';
+    c.insertAdjacentHTML('beforeend', h);
+  });
+  document.getElementById('nic-total').textContent = total;
+}
+document.getElementById('nic-filters').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  nicFilter = e.target.dataset.f;
+  document.querySelectorAll('#nic-filters .ctrl-btn').forEach(b => b.classList.toggle('active', b===e.target));
+  renderNic();
+});
+renderNic();
+
+/* ── NORTE GUANACASTE data ── */
+const ngData = [
+ {z:'Zone 1 — Playa Flamingo & Playa Potrero',s:'~50 min from Liberia LIR',rows:[
+  {n:'Casa Tigre',a:'Playa Flamingo',p:'$3,200',b:'3BR/3BA',pool:'y',pet:'y',u:'',src:'Flamingo CR',note:'⭐ Ocean/mountain/beach views. ✉️ Drafted.',st:1},
+  {n:'Riviera Casa 5',a:'Playa Potrero',p:'$3,000',b:'3BR/2BA',pool:'y',pet:'y',u:'',src:'Flamingo CR',note:'Riverfront. ✉️ Drafted.',st:1}
+ ]},
+ {z:'Zone 2 — Playa Grande',s:'~1:15 from LIR · Leatherback reserve area',rows:[
+  {n:'3BR Beach House (Leatherback area)',a:'Playa Grande',p:'Ask LT rate',b:'3BR/2BA',pool:'y',pet:'y',u:'',src:'1st Choice Realty',note:'2-min walk to beach. ✉️ Drafted.',st:1}
+ ]},
+ {z:'Zone 3 — Tamarindo & Villareal',s:'~1:20 from LIR',rows:[
+  {n:'Pacific Residences #13',a:'Villareal (5 min to Tamarindo)',p:'$3,600',b:'4BR/3.5BA',pool:'g',pet:'y',u:'',src:'Hidden Coast Realty',note:'⭐ Gated, A/C, new build. ✉️ Drafted.',st:1},
+  {n:'Buda House',a:'Villareal',p:'$4,500 + util',b:'4BR/3.5BA',pool:'g',pet:'g',u:'',src:'Hidden Coast Realty',note:'⭐ Gated, small dogs OK, avail Aug 15. ✉️ Drafted.',st:1},
+  {n:'Villa Verde I #02',a:'Tamarindo',p:'$3,400',b:'3BR/3.5BA',pool:'y',pet:'y',u:'',src:'Hidden Coast Realty',note:'Furnished apt, shared pool.',st:0},
+  {n:'Villa Verde I #14',a:'Tamarindo',p:'$3,400 ↓',b:'3BR/3.5BA',pool:'y',pet:'y',u:'',src:'Hidden Coast Realty',note:'Renovated condo, price drop.',st:0}
+ ]},
+ {z:'Zone 4 — Playa Avellanas & Playa Negra',s:'~1:35–1:50 from LIR',rows:[
+  {n:'Rent Avellanas Portfolio (6 homes)',a:'Playa Avellanas',p:'From $2,300',b:'2BR/2BA',pool:'g',pet:'g',u:'',src:'Avellanas rentals',note:'⚠️ 2BR only. ✉️ Drafted.',st:0}
+ ]}
+];
+let ngFilter = 'all';
+function renderNG() {
+  const c = document.getElementById('ng-zones'); c.innerHTML = '';
+  ngData.forEach(z => {
+    const rows = z.rows.filter(r => ngFilter==='all'?true: ngFilter==='pool'?r.pool==='g': r.st===1);
+    if (!rows.length) return;
+    let h = `<div class="zone"><h2>${z.z}${z.s?`<span class="sub">${z.s}</span>`:''}</h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th><th>Note</th></tr>`;
+    rows.forEach(r => {
+      h += `<tr><td>${r.n}<br><small>${r.src}</small></td><td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+           `<td>${pill(r.pool,'Private pool ✓','No pool')}</td><td>${pill(r.pet,'Pets ✓','Ask')}</td><td>${r.note}</td></tr>`;
+    });
+    h += '</table></div>';
+    c.insertAdjacentHTML('beforeend', h);
+  });
+}
+document.getElementById('ng-filters').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  ngFilter = e.target.dataset.f;
+  document.querySelectorAll('#ng-filters .ctrl-btn').forEach(b => b.classList.toggle('active', b===e.target));
+  renderNG();
+});
+renderNG();
+
+/* ── CENTRAL VALLEY data ── */
+const cvData = [
+ {zone:'escazu',zlabel:'Zone 1 — Escazú',zsub:'San Rafael · Trejos Montealegre · Guachipelín — main expat hub',rows:[
+  {n:'VILLAS DEL REY: House For Rent',a:'Escazú (200m², furnished, jacuzzi, 2 parking)',p:'$1,500',b:'3BR / 2BA',pool:'r',poolt:'Interior jacuzzi (no shared pool)',pet:'g',pett:'Pets OK ($0 dep.)',u:'https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800164',src:'re.cr RL1800164',nw:1,top:1},
+  {n:'Excellent Three Bedroom Condominium',a:'Escazú (170m², central AC)',p:'$2,950',b:'3BR / 1BA',pool:'g',poolt:'Community pool',pet:'g',pett:'Pets OK',u:'https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800158',src:'re.cr RL1800158',nw:1},
+  {n:'Beautiful Condominium',a:'Escazú (194m², central AC, garden view)',p:'$2,950',b:'3BR / 2BA',pool:'y',poolt:'Ask',pet:'g',pett:'Pets OK',u:'https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800157',src:'re.cr RL1800157',nw:1},
+  {n:'Apartment For Rent in Escazú',a:'Escazú (194m², mountain+greenbelt views)',p:'$3,450',b:'3BR / 1BA',pool:'g',poolt:'Community pool',pet:'g',pett:'Pets OK',u:'https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800197',src:'re.cr RL1800197',nw:1},
+  {n:'Casa en Condominio Calahonda',a:'San Rafael de Escazú',p:'$2,100',b:'3BR / 2.5BA',pool:'g',poolt:'Pool + rancho',pet:'g',pett:'Up to 2 pets',u:'https://costarica.inmobiliaria.com/escazu+trejos-montealegre/casas+alquiler/',src:'inmobiliaria.com',nw:0},
+  {n:'Casa Condominio con Piscina & Playground',a:'Escazú',p:'$2,700',b:'3BR',pool:'g',poolt:'Pool + playground',pet:'y',pett:'Ask',u:'https://www.domusverum.com/propiedades/casa-en-alquiler-trejos-montealegre/',src:'domusverum.com',nw:0},
+  {n:'Casa Semi-Amueblada, Trejos Montealegre',a:'Trejos Montealegre',p:'$2,500',b:'4BR / 174m²',pool:'y',poolt:'Ask',pet:'g',pett:'Pet-walkable (flat)',u:'https://www.encuentra24.com/costa-rica-es/bienes-raices-alquiler-apartamentos-amueblados/espectacular-casa-semi-amueblada-de-4-hab-en-trejos-montealegre-de-escazu/32155492',src:'Encuentra24 #32155492',nw:0}
+ ]},
+ {zone:'santaana',zlabel:'Zone 2 — Santa Ana',zsub:'Lindora · Pozos · Piedades',rows:[
+  {n:'House for Rent in Condo in Santa Ana',a:'Santa Ana (200m², furnished, A/C, gated)',p:'$2,000',b:'3BR / 2.5BA',pool:'g',poolt:'Community pool',pet:'g',pett:'Pets OK',u:'https://www.re.cr/en/costa-rica-rental-properties/central-valley/rl1800033',src:'re.cr RL1800033',nw:1,top:1},
+  {n:'Condominio en Lindora',a:'Lindora (Santa Ana)',p:'$2,600',b:'3BR / 2.5BA',pool:'g',poolt:'Community pool',pet:'y',pett:'Ask',u:'https://www.encuentra24.com/costa-rica-en/real-estate-for-rent-apartments-furnished/lindora-santa-ana/32170141',src:'Encuentra24 #32170141',nw:0},
+  {n:'The LAB in Lindora',a:'Lindora (tech corridor)',p:'$1,950',b:'2BR+loft / 2BA',pool:'y',poolt:'Ask',pet:'y',pett:'Ask',u:'',src:'Various listings',nw:0},
+  {n:'Casa en Pozos',a:'Pozos de Santa Ana',p:'$2,200',b:'3BR / 2BA',pool:'y',poolt:'Ask',pet:'y',pett:'Ask',u:'',src:'Encuentra24',nw:0}
+ ]},
+ {zone:'heredia',zlabel:'Zone 3 — Heredia',zsub:'San Pablo · San Rafael · San Francisco',rows:[
+  {n:'Rincón de las Brisas',a:'San Rafael de Heredia',p:'Ask',b:'3BR / 2BA',pool:'g',poolt:'Shared community pool',pet:'g',pett:'Pets OK (small)',u:'https://www.horizonsrealtycr.com/listings/',src:'Horizons Realty CR',nw:0},
+  {n:'Casa en Heredia Centro',a:'Heredia Centro',p:'$1,400',b:'3BR / 1BA',pool:'y',poolt:'Ask',pet:'y',pett:'Ask',u:'',src:'OLX CR',nw:0},
+  {n:'Alquiler San Pablo Heredia',a:'San Pablo',p:'$1,200',b:'3BR / 2BA',pool:'r',poolt:'No pool',pet:'y',pett:'Ask',u:'',src:'Encuentra24',nw:0}
+ ]},
+ {zone:'belen',zlabel:'Zone 4 — Belén / Cariari',zsub:'La Ribera · Asentamiento · Cariari',rows:[
+  {n:'Casa en Belén La Ribera',a:'La Ribera de Belén',p:'$1,800',b:'3BR / 2BA',pool:'y',poolt:'Ask',pet:'y',pett:'Ask',u:'',src:'Encuentra24',nw:0},
+  {n:'Condominio Cariari',a:'Cariari',p:'$2,100',b:'3BR / 2.5BA',pool:'g',poolt:'Club pool + gym',pet:'y',pett:'Ask',u:'',src:'Remax CR',nw:0},
+  {n:'Townhouse Belén',a:'Belén',p:'$1,650',b:'3BR / 2BA',pool:'y',poolt:'Ask',pet:'y',pett:'Ask',u:'',src:'OLX CR',nw:0}
+ ]}
+];
+let cvFilter = 'all';
+function renderCV() {
+  const c = document.getElementById('cv-zones'); c.innerHTML = '';
+  cvData.forEach(z => {
+    const rows = z.rows.filter(r => {
+      if (cvFilter==='all') return true;
+      if (cvFilter==='new') return r.nw===1;
+      if (cvFilter==='pool') return r.pool==='g';
+      if (cvFilter==='pet') return r.pet==='g';
+      return z.zone === cvFilter;
+    });
+    if (!rows.length) return;
+    let h = `<div class="zone"><h2>${z.zlabel}<span class="sub">${z.zsub}</span></h2><table><tr><th>Property</th><th>Area</th><th>Price/mo</th><th>Beds/Baths</th><th>Pool</th><th>Pets</th></tr>`;
+    rows.forEach(r => {
+      const name = r.u ? `<a href="${r.u}" target="_blank" rel="noopener">${r.n}</a>` : r.n;
+      h += `<tr><td>${name}${r.nw?'<span class="badge">NEW</span>':''}${r.top?'<span class="star-badge">⭐</span>':''}<br><small>${r.src}</small></td>`+
+           `<td>${r.a}</td><td>${r.p}</td><td>${r.b}</td>`+
+           `<td><span class="pill ${pc[r.pool]}">${r.poolt||'Ask'}</span></td>`+
+           `<td><span class="pill ${pc[r.pet]}">${r.pett||'Ask'}</span></td></tr>`;
+    });
+    h += '</table></div>';
+    c.insertAdjacentHTML('beforeend', h);
+  });
+}
+document.getElementById('cv-filters').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  cvFilter = e.target.dataset.f;
+  document.querySelectorAll('#cv-filters .ctrl-btn').forEach(b => b.classList.toggle('active', b===e.target));
+  renderCV();
+});
+renderCV();
+
+/* ── Initial render ── */
+renderSubNav();
+showPanel('cr','south-pacific');
+
+/* ── Auto-refresh every 60 minutes so Kim always sees latest data ── */
+setTimeout(() => location.reload(), 60 * 60 * 1000);
+
+</script>
+</body>
+</html>
