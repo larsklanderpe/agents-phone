@@ -1,0 +1,12 @@
+.sample-note { padding: 15px 18px; border-left: 3px solid #79998d; background: #edf2ef; font-size: .9rem; }
+.invitation { padding: clamp(20px, 5vw, 34px); background: white; border: 1px solid #cedcd5; border-radius: 12px; }
+.invitation h2 { font-size: 1.65rem; margin-bottom: 20px; }
+.invitation p:last-child { margin-bottom: 0; }
+.message-flow { list-style: none; padding: 0; margin: 28px 0; }
+.message-flow li { max-width: 94%; margin: 0 0 24px; }
+.message-flow .customer-message { margin-left: auto; width: 72%; }
+.message-label { margin-bottom: 8px; font-weight: 600; font-size: .8rem; color: #52666c; }
+blockquote { margin: 0; padding: 20px 24px; border-radius: 12px; background: #e9f1ed; overflow-wrap: anywhere; }
+.customer-message blockquote { background: #1c5148; color: white; font-weight: 650; }
+.response-example { margin: 0 0 22px; }
+@media (max-width: 480px) { .message-flow li { max-width: 100%; } blockquote { padding: 16px 18px; } }
