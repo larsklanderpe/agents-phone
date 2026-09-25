@@ -16,6 +16,18 @@ This is a static site. No build dependencies are required. GitHub Pages publishe
 
 Privacy text must describe the actual service, providers, data handling, consent, retention, and contact details. Update it when those practices change.
 
-These pages document text opt-in, STOP and HELP, and agent-assisted conversations and scheduling. The messaging backend must implement those behaviors; this static repository does not collect consent, send messages, or handle opt-outs. The public privacy contact is `lars.klander@gmail.com`.
+The Agents Phone pages document text opt-in, STOP and HELP, and agent-assisted conversations and scheduling. The messaging backend must implement those behaviors; those static pages do not collect consent, send messages, or handle opt-outs. The public privacy contact is `lars.klander@gmail.com`.
 
 Twilio handles texts, and Grok Bot is the current AI agent. Other agent setups will use separate phone numbers and may include Claude, Codex, Cursor/SpaceX, Gemini, or other systems. Identify the active agent in each number's opt-in information and update the policy when providers change. Do not treat one number's opt-in as consent for another number. The policy does not make unverified claims about vendors' AI training policies.
+
+## Work Notes enrollment
+
+The separate Work Notes program uses the registered brand `Lars Klander Personal` and number `+15014644426`. Its pages are under `/work-notes/`. The enrollment page embeds the published Tally form `https://tally.so/r/MeB7DE`, with a direct link as a fallback. Tally stores the submissions; this repository has no enrollment backend.
+
+The form requires name and email. SMS consent is a separate optional checkbox, unchecked by default. Selecting SMS consent conditionally requires the mobile number. An unchecked or absent consent value means no SMS consent, even if a phone number is present. Enrollment requires manual review by Lars. Outbound SMS, approval automation, and STOP/HELP handling are not implemented by this website or form.
+
+Tally saves the submitted consent option text, submission timestamp, and calculated text field `consent_version`, currently `work-notes-sms-v1-2026-09-25`. Retain the applicable wording alongside each version when changing the form. Current consent text:
+
+> I agree to receive automated SMS/text messages from Lars Klander Personal / Work Notes at the mobile number provided above, including work-request acknowledgments, clarification questions, and task updates. Message frequency varies. Message and data rates may apply. Reply STOP to unsubscribe or HELP for help. SMS consent is optional and is not a condition of purchase or access to the service.
+
+Verified in the published form on September 25, 2026: selecting consent without a phone number is blocked; a submission without SMS consent or a phone number succeeds. One saved test record is named `TEST ONLY - no SMS - do not approve`, with email `work-notes-test@example.com`. It has no phone number or SMS consent and must not be approved. No real SMS opt-in or outbound SMS was tested.
