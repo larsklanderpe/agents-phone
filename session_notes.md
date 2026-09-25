@@ -1,5 +1,17 @@
 # Session notes
 
+## 2026-09-25: Live deployment and Slack preflight correction
+
+- CURRENT BRANCH: codex/work-notes-preflight-fix, isolated worktree from merged main 8e0266c.
+- OPEN PRs: preparing the preflight correction; PR #3 merged and its worktree/branch cleaned up.
+- EXTERNAL DEPENDENCIES: Slack private-channel bot membership and event verification; signed Tally field mapping; Twilio campaign verification and controlled handset acceptance.
+- Render is deployed with a persistent disk and all three signing/auth secrets configured privately. Both SMS send switches remain false. The initial missing-secret startup failure is resolved; the deployed build passed 23 tests.
+- Lars approved the three additional bot scopes and reinstallation. Reinstalled Work Notes with cos-drive selected for the webhook. The actual bot OAuth token matches the Work Notes app; corrected its configured bot identity using auth.test. Revealed existing Render fields before editing because edits while masked were not persisted. Corrected the public base URL to the assigned Render origin.
+- Live preflight then exposed a request-format bug: conversations.info with a JSON POST returned invalid_arguments and missing required field: channel. A GET with the channel query parameter reached the channel lookup. Changed this read to GET, retaining JSON POST for message writes; the strengthened preflight test failed before the fix and all 23 tests pass after it.
+- Bot conversations.list currently returns no private channels. The bot still needs actual cos-drive membership; the incoming webhook channel selection is not membership evidence. No Slack events enabled and no new inbound cutover yet.
+- Tally webhook is connected. Submitted one clearly labeled fictitious no-SMS enrollment; its first delivery received 502 during a Render restart. Signed schema and successful ingestion remain unverified. No real recipient consent approved and no SMS sent.
+- An automatic approval review blocked enabling Slack events while preflight reported wrong_slack_installation. Resolve all identity/membership checks before retrying, rather than bypassing the block.
+
 ## 2026-09-25: Work Notes two-way bridge implementation
 
 - CURRENT BRANCH: codex/work-notes-return-path, isolated worktree based on published main 5825642.

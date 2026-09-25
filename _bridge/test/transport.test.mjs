@@ -36,7 +36,15 @@ test('preflight rejects unapproved campaign or wrong Slack installation and send
   const api = transport(c, async (url, options) => {
     assert.equal(url.includes('/Messages.json'), false);
     if (url.endsWith('auth.test')) return Response.json({ ok: true, team_id: wrongTeam ? 'other' : c.team, bot_id: c.bot });
-    if (url.endsWith('conversations.info')) return Response.json({ ok: true, channel: { is_private: true, is_member: true } });
+    if (new URL(url).pathname.endsWith('conversations.info')) {
+      const channel = new URL(url).searchParams.get('channel');
+      if (!channel) return Response.json({ ok: false, error: 'invalid_arguments', response_metadata: { messages: ['[ERROR] missing required field: channel'] } });
+      assert.equal(options.method, 'GET');
+      assert.equal(channel, c.channel);
+      assert.equal(options.body, undefined);
+      assert.equal(options.headers.Authorization, 'Bearer test');
+      return Response.json({ ok: true, channel: { is_private: true, is_member: true } });
+    }
     if (url.endsWith('/PhoneNumbers')) return Response.json({ phone_numbers: [{ phone_number: c.number }] });
     if (url.endsWith('/Usa2p')) return Response.json({ compliance: [{ campaign_status: approved ? 'VERIFIED' : 'IN_PROGRESS', messaging_service_sid: c.service, mock: false }] });
     assert.equal(options.method, undefined);
