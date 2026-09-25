@@ -1,5 +1,18 @@
 # Session notes
 
+## 2026-09-25: Work Notes two-way bridge implementation
+
+- CURRENT BRANCH: codex/work-notes-return-path, isolated worktree based on published main 5825642.
+- OPEN PRs: bridge PR pending creation; previous policy and enrollment PRs #1 and #2 are merged.
+- EXTERNAL DEPENDENCIES: Render account/billing and deployment, Slack app permission approval/reinstall, provider secrets, live signed Tally field mapping, Twilio A2P approval, and an authorized handset acceptance test.
+- Implemented signed Tally, Slack and Twilio endpoints; pending enrollment/manual approval; STOP suppression; explicit welcome; trusted thread-to-phone mapping; durable jobs/deduplication; status callbacks and private owner CLI.
+- Sending defaults off. Verified simulated sending, no-consent and unapproved blocking, opt-out, routing, signatures, retry deduplication, delivery status, timeouts and restart recovery with local tests. No live Slack messages or SMS were sent by this implementation.
+- Prepared a one-instance Render blueprint with persistent disk and a deployment/rollback runbook. Proposed hosting cost is approximately USD 7.25/month before Twilio and any excess usage. Lars has no host account yet and asked whether GitHub could run the bridge; explained static Pages versus Render runtime.
+- Read-only inspection confirms Work Notes Slack app has only incoming-webhook scope. Additional bot scopes and reinstallation are still required. No tokens are committed or included in these notes.
+- Prior live setup: Twilio Advanced Opt-Out enabled with branded STOP/START/HELP responses; Studio revision 16 published with control-keyword filtering before the existing sender allowlist. Existing inbound Studio routing remains unchanged by this implementation.
+- Added a proposed Render hosting disclosure to the Work Notes privacy policy. It is not published until the branch is approved and merged.
+- Next: owner review/merge, create Render account, deploy with sending disabled, connect and verify callbacks, confirm A2P, approve real consent, then perform a separately authorized end-to-end SMS test. The code is prepared, not live-verified.
+
 ## 2026-09-25: Work Notes Tally enrollment
 
 - CURRENT BRANCH: feat/work-notes-enrollment

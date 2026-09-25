@@ -1,0 +1,11 @@
+{
+  "display_information": { "name": "Work Notes", "description": "Private work requests by SMS", "background_color": "#203247" },
+  "features": { "bot_user": { "display_name": "Work Notes", "always_online": false } },
+  "oauth_config": { "scopes": { "bot": ["incoming-webhook", "chat:write", "groups:history", "groups:read"] } },
+  "settings": {
+    "event_subscriptions": { "request_url": "https://REPLACE.onrender.com/slack/events", "bot_events": ["message.groups"] },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
