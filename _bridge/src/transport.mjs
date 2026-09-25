@@ -18,8 +18,9 @@ export function transport(c, fetcher = fetch) {
     if (!response.ok) throw failure(data.code || response.status, response.status >= 400 && response.status < 500);
     return data;
   }
-  const slack = (method, body) => request(`https://slack.com/api/${method}`, {
-    method: 'POST', headers: { Authorization: `Bearer ${c.slackToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  const slack = (method, body, verb = 'POST') => request(`https://slack.com/api/${method}${verb === 'GET' ? '?' + new URLSearchParams(body) : ''}`, {
+    method: verb, headers: { Authorization: `Bearer ${c.slackToken}`, 'Content-Type': 'application/json; charset=utf-8' },
+    ...(verb === 'GET' ? {} : { body: JSON.stringify(body) }),
   }).then(data => { if (!data.ok) throw failure(data.error || 'slack_error', true); return data; });
   const twilio = url => request(url, { headers: { Authorization: basic } });
   return {
@@ -44,7 +45,7 @@ export function transport(c, fetcher = fetch) {
     async preflight() {
       const auth = await slack('auth.test', {});
       if (auth.team_id !== c.team || auth.bot_id !== c.bot) throw new Error('wrong_slack_installation');
-      const channel = await slack('conversations.info', { channel: c.channel });
+      const channel = await slack('conversations.info', { channel: c.channel }, 'GET');
       if (!channel.channel?.is_private || !channel.channel.is_member) throw new Error('private_channel_membership_required');
       const service = await twilio(`https://messaging.twilio.com/v1/Services/${c.service}`);
       if (service.account_sid !== c.account) throw new Error('wrong_twilio_service');
