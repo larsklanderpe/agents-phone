@@ -1,5 +1,14 @@
 # Session notes
 
+## 2026-10-04: Lenny and Tibo reading guide publication
+
+- CURRENT BRANCH: feat/research-publication-20261004-172253, isolated publication clone.
+- OPEN PRs: source research-documents-pe PR #3, then website agents-phone PR #7.
+- EXTERNAL DEPENDENCIES: merge authorization and GitHub Pages deployment.
+- Copied the rendered guide and updated library index using Publish-Research.ps1. Existing guides and domain configuration remain unchanged.
+- Validation: canonical renderer produced five guides; source metadata, timestamps, navigation and JavaScript syntax checked. Public verification follows deployment.
+- Next: merge authorized PRs, verify the live guide and library index, and clean up merged branches.
+
 ## 2026-09-25: Live deployment and Slack preflight correction
 
 - CURRENT BRANCH: codex/work-notes-preflight-fix, isolated worktree from merged main 8e0266c.
