@@ -1,5 +1,13 @@
 # Session notes
 
+## 2026-10-13: Telemachus flow page published (LMDTS-1379)
+
+- CURRENT BRANCH: feat/LMDTS-1379-telemachus-flow-page, scratch clone.
+- OPEN PRs: the PR for this branch.
+- EXTERNAL DEPENDENCIES: GitHub Pages deployment.
+- Added telemachus-flow/index.html: the Telemachus Stages 0 to 4 flow by server, a single static page with a noindex tag. Not linked from the site index. Source of truth is pe-runbooks-and-references, docs/superpowers/deliverables/2026-10-12-telemachus-flow-by-server.html; republish by copying that file here.
+- Lars approved public publication on 2026-10-12.
+
 ## 2026-10-04: Lenny and Tibo reading guide publication
 
 - CURRENT BRANCH: feat/research-publication-20261004-172253, isolated publication clone.
