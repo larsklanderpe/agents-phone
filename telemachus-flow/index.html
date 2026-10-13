@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Telemachus Flow by Server</title>
+<style>
+/* Layout: one column of work windows in installer order; each row is a step with its server, book and change tag. */
+:root{
+  --bg:#fbfaf6; --panel:#ffffff; --ink:#1a1a1a; --muted:#5f5b4f; --rule:#dcd8ca; --gold:#8a7716; --gold-fill:#cdb53b;
+  --db:#1f4e8c; --db-bg:#e3ecf8; --app:#1d6b52; --app-bg:#e0f1ea; --off:#6a3c8f; --off-bg:#efe6f6;
+  --br:#a4541a; --br-bg:#f8e9dc; --pa:#55524a; --pa-bg:#ebe9e2; --bu:#7a5a1e; --bu-bg:#f3ead6;
+  --chg:#8a5a00; --chg-bg:#fbefc9; --mov:#5b3aa0; --mov-bg:#ece5fa; --new:#17663a; --new-bg:#dff3e6; --stop:#a32020; --stop-bg:#fbe3e3;
+  --font:Arial, Helvetica, sans-serif; --mono:"Courier New", Courier, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#151513; --panel:#1e1e1b; --ink:#f0eee6; --muted:#aaa698; --rule:#3a382f; --gold:#cdb53b; --gold-fill:#cdb53b;
+  --db:#8fb8f0; --db-bg:#1b2c45; --app:#7fd1b2; --app-bg:#17332a; --off:#c9a3ea; --off-bg:#30213f;
+  --br:#f0a56c; --br-bg:#3d2715; --pa:#c4c0b3; --pa-bg:#2e2d28; --bu:#dcbf7a; --bu-bg:#3a2f17;
+  --chg:#f0c55a; --chg-bg:#3d3110; --mov:#bfa6f2; --mov-bg:#2b2147; --new:#7fd69a; --new-bg:#16341f; --stop:#f08a8a; --stop-bg:#421b1b;
+  color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#151513; --panel:#1e1e1b; --ink:#f0eee6; --muted:#aaa698; --rule:#3a382f; --gold:#cdb53b; --gold-fill:#cdb53b;
+  --db:#8fb8f0; --db-bg:#1b2c45; --app:#7fd1b2; --app-bg:#17332a; --off:#c9a3ea; --off-bg:#30213f;
+  --br:#f0a56c; --br-bg:#3d2715; --pa:#c4c0b3; --pa-bg:#2e2d28; --bu:#dcbf7a; --bu-bg:#3a2f17;
+  --chg:#f0c55a; --chg-bg:#3d3110; --mov:#bfa6f2; --mov-bg:#2b2147; --new:#7fd69a; --new-bg:#16341f; --stop:#f08a8a; --stop-bg:#421b1b;
+  color-scheme:dark }
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:1080px;margin-inline:auto;display:flex;flex-direction:column;gap:28px}
+h1{font-size:28px;margin:0;text-wrap:balance}
+h2{font-size:19px;margin:0;text-wrap:balance}
+h3{font-size:15px;margin:0}
+p{margin:0}
+.lede{color:var(--muted);max-width:70ch}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:bold}
+header.top{display:flex;flex-direction:column;gap:10px;border-bottom:3px solid var(--gold-fill);padding-bottom:18px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+button.chip{font:inherit;font-size:13px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:5px 10px;border-radius:999px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+button.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:bold}
+button.chip:focus-visible, input:focus-visible, a:focus-visible{outline:2px solid var(--gold-fill);outline-offset:2px}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.s-db{background:var(--db)} .s-app{background:var(--app)} .s-off{background:var(--off)} .s-br{background:var(--br)} .s-pa{background:var(--pa)} .s-bu{background:var(--bu)}
+.count{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:normal}
+.progress{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* overview strip */
+.strip{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr);gap:6px 14px;align-items:center}
+.strip .nm{font-size:13px}
+.strip .nm a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--muted)}
+.strip .cells{display:flex;flex-wrap:wrap;gap:3px}
+.cell{width:16px;height:16px;border-radius:2px;display:block}
+.cell.split{background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%)}
+@media (max-width:560px){ .strip{grid-template-columns:1fr} }
+
+/* questions */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.q{border-left:3px solid var(--gold-fill);padding:2px 0 2px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.q p{color:var(--muted);font-size:14px}
+.q .ev{font-size:12px;font-family:var(--mono);color:var(--muted)}
+
+/* phases */
+section.phase{display:flex;flex-direction:column;gap:10px;scroll-margin-top:12px}
+.ph-head{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:8px}
+.ph-head .when{font-size:13px;color:var(--muted)}
+.ph-head .bk{font-size:13px;color:var(--muted);margin-left:auto}
+.note{font-size:13px;padding:8px 10px;border-radius:4px;background:var(--stop-bg);color:var(--stop)}
+.note.info{background:var(--pa-bg);color:var(--ink)}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+li.step{display:grid;grid-template-columns:22px 52px 128px minmax(0,1fr) minmax(0,190px);gap:4px 12px;padding:9px 6px;border-bottom:1px solid var(--rule);align-items:start}
+li.step.done .body{opacity:.5;text-decoration:line-through}
+li.step input{margin:3px 0 0;width:16px;height:16px}
+.seq{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:1px}
+.srv{display:flex;flex-direction:column;gap:3px}
+.badge{font-size:11px;font-weight:bold;letter-spacing:.04em;padding:2px 6px;border-radius:3px;white-space:nowrap;width:fit-content}
+.b-db{background:var(--db-bg);color:var(--db)} .b-app{background:var(--app-bg);color:var(--app)} .b-off{background:var(--off-bg);color:var(--off)}
+.b-br{background:var(--br-bg);color:var(--br)} .b-pa{background:var(--pa-bg);color:var(--pa)} .b-bu{background:var(--bu-bg);color:var(--bu)}
+.body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.body .t{font-weight:bold}
+.body .d{color:var(--muted);font-size:14px}
+.meta{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+.tag{font-size:11px;font-weight:bold;padding:2px 6px;border-radius:3px;width:fit-content;letter-spacing:.03em}
+.t-chg{background:var(--chg-bg);color:var(--chg)} .t-mov{background:var(--mov-bg);color:var(--mov)} .t-new{background:var(--new-bg);color:var(--new)} .t-gate{background:var(--stop-bg);color:var(--stop)}
+@media (max-width:760px){
+  li.step{grid-template-columns:22px 52px minmax(0,1fr)}
+  li.step .srv{flex-direction:row;flex-wrap:wrap;grid-column:3}
+  li.step .body{grid-column:2 / -1}
+  li.step .meta{grid-column:2 / -1;flex-direction:row;flex-wrap:wrap;gap:4px 10px}
+}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+footer{font-size:12px;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Project Telemachus - draft for Lars's review - 12 Oct 2026 - LMDTS-1379</div>
+    <h1>Telemachus flow by server, Stages 0 to 4</h1>
+    <p class="lede">Every step in the package, in the order the installers will work it, with the server it runs on and the book it lives in today. Stage 0 is worked in two parts: 0A is the database server day, 0B is the app server pre-setup. Step numbers match the run-order tables in the Stage 0 book; a letter marks a step this page breaks into smaller ticks. Stage 5 (kiosk fleet) is left out until Odyssey signs off the new kiosk front end. The books now match this page: Stage 0 carries the 0A and 0B run order, and MAIUS-DB and RPS Nexus Photo sit in Stage 0 Section 5A.</p>
+    <div class="legend">
+            <span><span class="tag t-mov">MOVED</span> same step, new place in the order since the 12 Oct rewrite</span>
+            <span><span class="tag t-gate">GATE</span> hard stop or no undo</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="ov">
+    <h2 id="ov" style="margin-bottom:10px">Who is on which server, window by window</h2>
+    <div class="strip" id="strip"></div>
+    <div class="legend" style="margin-top:12px" id="srvLegend"></div>
+  </section>
+
+  <section aria-labelledby="qh">
+    <h2 id="qh" style="margin-bottom:12px">Still open after the rewrite</h2>
+    <div class="qs">
+      <div class="q"><h3>The database server day is blocked on three answers</h3><p>The books now carry hard gates for them: the minimum CMSIA build that RPS Nexus Photo works against, your approval of the MAIUS configuration table landing ahead of Stage 1, and your confirmation of which MAIUS instance sits on which server.</p><span class="ev">Stage 0 1.2a; 1.2 rows 8 and 9; 5A.2</span></div>
+      <div class="q"><h3>What .NET 6 is for</h3><p>The bi-directional worker on its <b>bidirectional</b> branch targets .NET 5, not 6. A .NET 6 runtime does not run a .NET 5 build by default. If the worker is the reason for the 6 hop, it needs a retarget or a roll-forward setting. If something else needs 6, the book should name it.</p><span class="ev">netcore-venues-internalworker csproj, checked today</span></div>
+      </div>
+  </section>
+
+  <section aria-label="Filters">
+    <div class="controls" id="srvFilter"><span class="lbl">Server</span></div>
+    <div class="controls" style="margin-top:8px"><span class="lbl">Show</span>
+      <button class="chip" id="f-all" aria-pressed="true">Every step</button>
+      <button class="chip" id="f-chg" aria-pressed="false">Only what moved</button>
+      <span class="progress" id="prog"></span>
+      <button class="chip" id="f-reset">Clear ticks</button>
+    </div>
+  </section>
+
+  <div id="phases" style="display:flex;flex-direction:column;gap:34px"></div>
+
+  <footer>Built from the master book and the Stage 0, 1, 2a, 2b, 3 and 4 books in pe-runbooks-and-references as they stand on 11 Oct 2026. Ticks are kept in this browser only.</footer>
+</div>
+
+<script>
+const SRV={db:["DB SERVER","db"],app:["APP SERVER","app"],off:["OFF SITE","off"],br:["STAFF BROWSERS","br"],pa:["PAPER","pa"],bu:["BEFORE TRAVEL","bu"]};
+const SRVNOTE={db:"Database server",app:"App server",off:"Cloud Master, Mobile Cloud, RDS, AWS console",br:"Staff PCs",pa:"Sign-off, no box",bu:"Build machine and package"};
+const TAG={chg:["CHANGED","t-chg"],mov:["MOVED","t-mov"],new:["NEW","t-new"],gate:["GATE","t-gate"]};
+// [seq, servers, title, detail, book ref, tags]
+const PHASES=[
+ {id:"pre",name:"Before travelling",when:"Days ahead",book:"Master book",steps:[
+  ["P.1",["pa"],"Master book read, programme go / no-go walked","Rehearsal gates, non-WAN confirmed, window sized, rollback owner named.","Master 3, 8",["gate"]],
+  ["P.2",["bu"],"Commencement package checked against the manifest","SQL in flight order, published service folders with SHAs, static artifacts, installers, sealed note of secrets.","Master 4.7",[]],
+  ["P.3",["bu"],"Installer subdirectory holds all nine .NET installers and PowerShell 7","Desktop Runtime 6, 8, 10. Hosting Bundle 6, 8, 10. PowerShell 7.","Master 4.7; Stage 0 5.2",[]],
+  ["P.4",["bu"],"Web client dist built and its build string written on the package","From main at or after cf51417.","Stage 2a item 5a",[]],
+  ["P.5",["off"],"Bi-directional venue key written to the RDS","Done from the LMDTS-617 tab, not from the venue.","Stage 2a targets",[]],
+  ["P.6",["bu"],"SQL Compare settings obtained from Stu","Needed before the first site.","Master 7.8",[]],
+  ["P.7",["pa"],"Lars's two recorded approvals","The MAIUS configuration table landing ahead of Stage 1, and the MAIUS host-to-instance mapping (MAIUS-DB on the database server, MAIUS-APP on the app server). Step 0A.16 is blocked until both are written into the site record.","Stage 0 1.2 row 9; 5A.2 gate",["gate"]],
+  ["P.8",["app"],"The venue's existing CMSIA is confirmed compatible with RPS Nexus Photo","Read-only version check on the app server. The minimum version is still a placeholder for Lars to supply; until he does, the database server day cannot start.","Stage 0 1.2a",["gate"]]
+ ]},
+ {id:"0a",name:"0A - Database server day",when:"Day 1, the day before",book:"Stage 0, part 0A",
+  note:"Everything here is on the database server, worked top to bottom in one sitting. The SQL Server upgrade has no undo: the only way back is restore from backup.",steps:[
+  ["0A.1",["pa"],"Site is non-WAN and has two hosts","Stop here if the site is WAN. A single-server site runs 0A and 0B on the one box.","Stage 0 1.5, step 0.0",["gate"]],
+  ["0A.2",["db"],"Record the OS version","A 2016 host is not a blocker. It gets a row in the OS upgrade register.","Stage 0 1.5, step 0.1",[]],
+  ["0A.3",["db"],"PE Service Morning Restart task: record its state, then disable it","It fires at 8 AM and would restart half-configured services mid-window.","Master 4.8",[]],
+  ["0A.4",["db"],"Baseline audit, saved against the venue code","Two pre-flight scripts and the three OSDB-2463 answers. SQL edition, build, compat levels, features. SSRS mode, report inventory, subscriptions. .NET runtimes present. Versions of MAIUS-DB and RPS Nexus Photo found.","Stage 0 2.1 to 2.5",[]],
+  ["0A.5",["pa"],"Baseline read by a second person","Confirms which legs apply. A site already at target records SKIPPED with evidence.","Stage 0 2.6",[]],
+  ["0A.6",["db"],"Backups verified","4 am backups of the four databases exist and are current. Whether a fresh restore-verified backup is also required is still open for you.","Stage 0 1.2, 3.3, 9",["gate"]],
+  ["0A.7",["db"],"SSRS encryption key exported off the box, password validated","Must happen while SSRS 2016 is still installed. SQL Server Setup removes it in the next block.","Stage 0 4.2",["gate"]],
+  ["0A.8",["db"],"SSRS 2022 installer staged on the box","Staged ahead, not downloaded during the window.","Stage 0 4.3",[]],
+  ["0A.9a",["db"],"Stop every PE service that connects to the instance","Enumerated from the baseline, not from memory.","Stage 0 3.4 step 1",[]],
+  ["0A.9b",["db"],"SQL Server 2016 SP3 to 2022, in place","Every Database Engine feature from the baseline except Reporting Services. This run removes SSRS 2016.","Stage 0 3.4 steps 2 to 4",["gate"]],
+  ["0A.9c",["db"],"Windows Update, repeated, until SQL Server 2022 is on the latest cumulative update","Record the build reached.","Stage 0 3.4 step 5",[]],
+  ["0A.9d",["db"],"Verify the engine","Version 2022, every database online at its old compatibility level, Agent jobs, logins, error log clean.","Stage 0 3.6",[]],
+  ["0A.10",["db"],"Install SSRS 2022, restore the key, verify reports in place","Point it at the existing ReportServer database. Reports Installer only if reports are missing. Count reports and subscriptions against the inventory.","Stage 0 4.4 to 4.7",[]],
+  ["0A.11",["db"],"SSMS 22, updated to latest, with SQL Compare initialised","Was before the baseline; now after the SQL Server upgrade.","Stage 0 1.5, step 0.2",["mov"]],
+  ["0A.12",["db"],"Microsoft Edge installed and runnable","Was before the baseline; now after the SQL Server upgrade.","Stage 0 1.5, step 0.2",["mov"]],
+  ["0A.13a",["db"],".NET Desktop Runtime 6, then 8, then 10","Three installs, back to back. Desktop runtime only on this box.","Stage 0 5.3",[]],
+  ["0A.13b",["db"],"PowerShell 7","Installed at the same point as .NET, by the same script.","Stage 0 5.3",[]],
+  ["0A.14",["db"],"dotnet --list-runtimes shows 6.0.x, 8.0.x and 10.0.x; pwsh prints 7.x","NETCore.App and WindowsDesktop.App at each version. Record the output.","Stage 0 5.6",[]],
+  ["0A.15",["db"],"Capture for the two database-server services","Versions found, config files off the box, and the Definition A logging table check.","Stage 0 5A.1",[]],
+  ["0A.16a",["db"],"MAIUS SQL on the barrel, once","Configuration.Services_AWS table and the two rows from the sealed note. Both AWS rows go in now.","Stage 0 5A.2 (was Stage 2b item 5)",["mov"]],
+  ["0A.16b",["db"],"MAIUS-DB replaced with the .10 build","The MAIUS_Members instance. Capture, stop, back up, copy over, start. Version reads 3.0.x.","Stage 0 5A.2 (was Stage 2b item 5)",["mov"]],
+  ["0A.17",["db"],"RPS Nexus Photo installed or upgraded","Publish into an empty folder, sc create and start. Banner names .NET 10.","Stage 0 5A.3 (was Stage 2b item 3)",["mov"]],
+  ["0A.18",["db"],"Restart PE services, then the database-server verification lines","SQL version, databases online, compat unchanged, features, Agent jobs, logins, SSRS portal, report count, credential modes, subscriptions, one report end to end, latest CU.","Stage 0 section 6, lines marked 0A",[]],
+  ["0A.19",["pa"],"0A signed","The 7-day SSRS park clock starts here.","Stage 0 6a",["gate"]]
+ ]},
+ {id:"0b",name:"0B - App server pre-setup",when:"Day 2, before any PE install",book:"Stage 0, part 0B",steps:[
+  ["0B.1",["app"],"Record the OS version; record and disable the Morning Restart task","Same rules as the database server.","Stage 0 1.5; Master 4.8",[]],
+  ["0B.2",["app"],"Baseline: .NET runtimes, the IIS ASP.NET Core Module, and the version of every service to be replaced","Never assert a version. Capture it and write it to the site config.","Stage 0 2.4, 2.5",[]],
+  ["0B.3",["app"],"Edge, SSMS 22 (latest) and SQL Compare","As the book has it today.","Stage 0 1.5, step 0.2",[]],
+  ["0B.4a",["app"],".NET 6, 8, 10: Desktop Runtime and Hosting Bundle for each","Six installs, back to back.","Stage 0 5.4",[]],
+  ["0B.4b",["app"],"PowerShell 7","Installed at the same point as .NET, by the same script.","Stage 0 5.4",[]],
+  ["0B.5",["app"],"IIS reset, then verify","dotnet --list-runtimes shows NETCore.App and AspNetCore.App at 6, 8 and 10. AspNetCoreModuleV2 registered in IIS. pwsh prints 7.x.","Stage 0 5.4, 5.6",[]],
+  ["0B.6",["app","off"],"Bi-directional key check, where bi-directional is already installed","The key on the RDS matches the configuration file at the venue. A site without it proves this in Stage 2a.","Stage 0 section 6, line 17",[]],
+  ["0B.7",["pa"],"Stage 0 exit: every verification line, go / no-go, signature","Stage 1 does not start until both hosts are done. Parking here is bounded to 7 days until every inventory report has been run.","Stage 0 sections 6, 6a, 8",["gate"]]
+ ]},
+ {id:"s1",name:"Stage 1 - Database objects",when:"After Stage 0 on both hosts",book:"Stage 1 book",
+  info:"Thirteen flights, run from SSMS. Eleven are at the venue on the database server. Two are on the cloud instances and one is a check on the RDS.",steps:[
+  ["1.1",["off"],"Flight 1: PlayerOffers columns on Cloud Master, then Mobile Cloud","Run directly on each instance, never over the linked server.","Stage 1 flight 1",[]],
+  ["1.2",["db"],"Flight 2: barrel tables and columns","Audit core, configuration tables, self-serve flags on nine tables, Member Manager columns.","Stage 1 flight 2",[]],
+  ["1.3",["db"],"Flight 3: stub SESSIONS_STAGE widen, then the covering index","Never the index before the widen.","Stage 1 flight 3",[]],
+  ["1.4",["off"],"Flight 4: BidirectionalVenueKey column exists on the RDS","Verification only. Absent means stop.","Stage 1 flight 4",[]],
+  ["1.5",["db"],"Flight 5: barrel dependencies","LMDTS-867, the OSDB-2170 birthday gate, the LMDTS-606 mirror tables and procedures as one unit.","Stage 1 flight 5",[]],
+  ["1.6",["pa"],"Flight 6: collision register sign-off","Four objects have more than one file. Deploy exactly one of each.","Stage 1 flight 6",["gate"]],
+  ["1.7",["db"],"Flight 7: Odyssey stub procedures, diffed against the live text first","Includes the LMDTS-1353 true-up pair.","Stage 1 flight 7",[]],
+  ["1.8",["db"],"Flight 8: Groups procedures, then Member Manager procedures","UPSERT_MEMBER_BALANCES must carry LMDTS-730.","Stage 1 flight 8",[]],
+  ["1.9",["db"],"Flight 9: SSIVC procedures","By theme: audit, offers, promotions, games, groups, gift giveaway, member, configuration.","Stage 1 flight 9",[]],
+  ["1.10",["off"],"Flight 10: LOGIN_USER_SIMPLE disable on the Cloud Master","Only this. LOGIN_USER_SECURE is held for Stage 2a.","Stage 1 flight 10",["gate"]],
+  ["1.11",["db"],"Flight 11: triggers","The two balance hooks are not touched here.","Stage 1 flight 11",[]],
+  ["1.12",["db"],"Flight 12: data migrations, last","One of them touches existing rows.","Stage 1 flight 12",[]],
+  ["1.13",["db"],"Flight 13: birthday procedure set confirmed complete","All four objects on their expected bodies.","Stage 1 flight 13",[]],
+  ["1.14",["pa"],"Stage 1 exit gate","Do not park until both blocking checks are in the site record.","Stage 1 exit gate; Master 2.4",["gate"]]
+ ]},
+ {id:"s2a",name:"Stage 2a - Core services",when:"One window, never parked part-done",book:"Stage 2a book",
+  note:"Start only when the whole stage fits the window left. Stopping between the SSIVC binary and RPS-Odyssey, or between the binary and the web client, exposes redemptions and breaks the client.",steps:[
+  ["2a.1",["app","db"],"Pre-stage capture","Config files off the box, CMSIA heartbeat, SSIVC banner, service names and folders. On the database server, the live bodies of the two MARK_*_POSTED procedures.","Stage 2a item 1",[]],
+  ["2a.2",["app"],"Bi-directional worker, first install","Generated config placed, published output from the bidirectional branch copied in. Installed now, proved at 2a.3b.","Stage 2a item 2",[]],
+  ["2a.3",["app","db"],"CMSIA, .NET 2.2 to 10","First confirm the two true-up procedures on the database server. Runtimes should already be there from 0B: verify, do not reinstall.","Stage 2a item 3",[]],
+  ["2a.3a",["app","db"],"RPS-Odyssey, .NET 2.2 to 10","Its own SQL on both databases first, then the service.","Stage 2a item 3a",[]],
+  ["2a.3b",["app","off"],"Bi-directional proof, both directions","First point it can pass. The two test transactions are still not written down.","Stage 2a item 3b",[]],
+  ["2a.4",["app"],"Member Manager, first install","IIS plus Kestrel on 5080 and 5443.","Stage 2a item 4",[]],
+  ["2a.5",["app","db"],"SSIVC binary, config and the OSDB-2307 procedure","App server first, then the procedure on the database server.","Stage 2a item 5",[]],
+  ["2a.5a",["app"],"Web client dist, immediately after the binary","Snapshot the web root first, then copy in with no delete.","Stage 2a item 5a",["gate"]],
+  ["2a.6",["off"],"LOGIN_USER_SECURE on the Cloud Master","Once per rollout, only after the new binary is live.","Stage 2a item 6",[]],
+  ["2a.7",["pa"],"Stage 2a exit gate","","Stage 2a exit gate",["gate"]]
+ ]},
+ {id:"s2b",name:"Stage 2b - What is left on the app server",when:"After Stage 2a is up",book:"Stage 2b book, app server only",steps:[
+  ["2b.1",["app"],"Pre-stage capture","Versions found, config files off the box, the legacy MAIVS IIS application. The database server was captured at 0A.","Stage 2b item 1",[]],
+  ["2b.4",["app","db"],"MAIVS10, side by side with the legacy MAIVS","Eight SQL scripts on the barrel, then its own IIS application under PEDLS\\MAIVS10.","Stage 2b item 4",[]],
+  ["2b.5",["app"],"MAIUS-APP replaced","The MAIUS_Offers instance. The database-server half is 0A.16.","Stage 2b item 5",[]],
+  ["2b.6",["app"],"MAQRCGS10 replaced","The .NET 10 build of MAQRCGS2. No artifact carries the new name.","Stage 2b item 6",[]],
+  ["2b.7",["app"],"VMDIDS 10 replaced","Self-contained publish, config at the exact name AppSettings-VMDIDS.json.","Stage 2b item 7",[]],
+  ["2b.8",["app"],"ODY NEXUS CORS proxy, only if absent","No source identified yet. Record present or absent.","Stage 2b item 8",[]],
+  ["2b.9",["pa"],"Stage 2b exit gate","","Stage 2b exit gate",["gate"]]
+ ]},
+ {id:"s3",name:"Stage 3 - Front ends and tools",when:"After Stage 2a and 2b",book:"Stage 3 book",steps:[
+  ["3.1",["app","db"],"Pre-stage capture","Copy the whole web root. Record the venue row's logo path and comms flags.","Stage 3 item 1",[]],
+  ["3.3",["app","db"],"Venue row","Logo file into the branding folder, SiteLogoLocation set. Comms flags read and left at 0.","Stage 3 item 3",[]],
+  ["3.4",["br"],"Base URL on every staff browser","About shows the recorded build string, character for character.","Stage 3 item 4",[]],
+  ["3.5",["db"],"Legacy kiosk front end, verification only","Re-check the birthday gate, mirror tables and contact-update procedures. Nothing installed.","Stage 3 item 5",[]],
+  ["3.6",["app"],"Scratchpads and tools index","Four scratchpads placed. The index and its build script do not exist yet.","Stage 3 item 6",[]],
+  ["3.7",["pa"],"Stage 3 exit gate","","Stage 3 exit gate",["gate"]]
+ ]},
+ {id:"s4",name:"Stage 4 - Reporting and close-out",when:"After Stages 0 to 3",book:"Stage 4 book",steps:[
+  ["4.1",["db"],"SSRS audit reports","Six report files uploaded with overwrite to /Audit, on the report server.","Stage 4 item 1",[]],
+  ["4.2",["db"],"The site's other reports, re-verified","Count against the inventory, run one end to end, subscriptions enabled.","Stage 4 item 2",[]],
+  ["4.3",["db","app"],"Log levels, each set where that service reads it","RPS Nexus Photo and MAIUS are recorded as unsettable for now.","Stage 4 item 3",[]],
+  ["4.4",["db","pa"],"AWS references recorded by name and location","Never by value.","Stage 4 item 4",[]],
+  ["4.5",["db","br"],"Tier hook, per venue","Four gates true, then DISABLE TRIGGER, then the check.","Stage 4 item 5",["gate"]],
+  ["4.6",["br","app","db"],"End-to-end verification walk","Every matrix in order. A failure is a stop.","Stage 4 item 6",["gate"]],
+  ["4.7",["app"],"Real-time connector handoff line","Three SSIVC config keys confirmed. Rollout pending under LMDTS-584.","Stage 4 item 7",[]],
+  ["4.8",["db","off"],"Comms flags","Blocked estate-wide by OSDB-2411. Recorded as not flipped; both stay 0.","Stage 4 item 8",[]],
+  ["4.9",["db","app"],"Morning Restart task re-enabled or installed, then its dry run","Only after the walk at 4.6 passes. Every Telemachus service must appear in the dry run.","Master 4.8",[]],
+  ["4.10",["pa"],"Programme go / no-go and close-out","Site record completed. Kiosk list handed on for Stage 5.","Stage 4 item 9",["gate"]]
+ ]}
+];
+
+const KEY="telemachus-flow-ticks-v1";
+let ticks={}; try{ticks=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){ticks={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(ticks))}catch(e){}}
+let fSrv=null, fChg=false;
+const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n};
+const changed=s=>s[5].some(t=>t==="chg"||t==="mov"||t==="new");
+
+function strip(){
+  const box=document.getElementById("strip");
+  PHASES.forEach(p=>{
+    const nm=el("div","nm");const a=el("a",null,p.name);a.href="#"+p.id;nm.appendChild(a);box.appendChild(nm);
+    const cells=el("div","cells");
+    p.steps.forEach(s=>{const c=el("span","cell");
+      if(s[1].length>1){c.classList.add("split");c.style.setProperty("--c1","var(--"+s[1][0]+")");c.style.setProperty("--c2","var(--"+s[1][1]+")")}
+      else c.style.background="var(--"+s[1][0]+")";
+      c.title=s[0]+" "+s[2];cells.appendChild(c)});
+    box.appendChild(cells)});
+  const lg=document.getElementById("srvLegend");
+  Object.keys(SRV).forEach(k=>{const sp=el("span");sp.appendChild(el("span","dot s-"+k));sp.appendChild(document.createTextNode(SRV[k][0]+": "+SRVNOTE[k]));lg.appendChild(sp)});
+}
+function filters(){
+  const box=document.getElementById("srvFilter");
+  const mk=(k,label)=>{const b=el("button","chip");b.id="srv-"+(k||"all");b.setAttribute("aria-pressed",String(fSrv===k));
+    if(k)b.appendChild(el("span","dot s-"+k));b.appendChild(document.createTextNode(label));
+    const n=PHASES.reduce((a,p)=>a+p.steps.filter(s=>!k||s[1].includes(k)).length,0);b.appendChild(el("span","count",String(n)));
+    b.onclick=()=>{fSrv=k;[...box.querySelectorAll("button")].forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");render()};box.appendChild(b)};
+  mk(null,"All");Object.keys(SRV).forEach(k=>mk(k,SRV[k][0]));
+  const fa=document.getElementById("f-all"),fc=document.getElementById("f-chg");
+  fa.onclick=()=>{fChg=false;fa.setAttribute("aria-pressed","true");fc.setAttribute("aria-pressed","false");render()};
+  fc.onclick=()=>{fChg=true;fc.setAttribute("aria-pressed","true");fa.setAttribute("aria-pressed","false");render()};
+  document.getElementById("f-reset").onclick=()=>{ticks={};save();render()};
+}
+function render(){
+  const root=document.getElementById("phases");root.textContent="";let total=0,done=0;
+  PHASES.forEach(p=>{
+    const steps=p.steps.filter(s=>(!fSrv||s[1].includes(fSrv))&&(!fChg||changed(s)));
+    p.steps.forEach(s=>{total++;if(ticks[s[0]])done++});
+    if(!steps.length)return;
+    const sec=el("section","phase");sec.id=p.id;
+    const h=el("div","ph-head");h.appendChild(el("h2",null,p.name));h.appendChild(el("span","when",p.when));h.appendChild(el("span","bk",p.book));sec.appendChild(h);
+    if(p.note)sec.appendChild(el("p","note",p.note));
+    if(p.info)sec.appendChild(el("p","note info",p.info));
+    const ol=el("ol","steps");
+    steps.forEach(s=>{
+      const li=el("li","step"+(ticks[s[0]]?" done":""));
+      const cb=el("input");cb.type="checkbox";cb.id="cb-"+s[0].replace(/\./g,"-");cb.checked=!!ticks[s[0]];cb.setAttribute("aria-label","Done: "+s[0]+" "+s[2]);
+      cb.onchange=()=>{if(cb.checked)ticks[s[0]]=1;else delete ticks[s[0]];save();render()};
+      li.appendChild(cb);li.appendChild(el("span","seq",s[0]));
+      const sv=el("div","srv");s[1].forEach(k=>sv.appendChild(el("span","badge b-"+k,SRV[k][0])));li.appendChild(sv);
+      const b=el("div","body");b.appendChild(el("span","t",s[2]));if(s[3])b.appendChild(el("span","d",s[3]));li.appendChild(b);
+      const m=el("div","meta");m.appendChild(el("span",null,s[4]));s[5].forEach(t=>m.appendChild(el("span","tag "+TAG[t][1],TAG[t][0])));li.appendChild(m);
+      ol.appendChild(li)});
+    sec.appendChild(ol);root.appendChild(sec)});
+  document.getElementById("prog").textContent=done+" of "+total+" ticked";
+}
+strip();filters();render();
+</script>
+</body>
+</html>
